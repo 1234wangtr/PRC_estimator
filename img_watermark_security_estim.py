@@ -40,7 +40,7 @@ def main2():
     n = 2**14
 
     isd_list = []
-    mitm_list = []
+    # mitm_list = []
     partial_list = []
     dup_list = []
     true_isd_list = []
@@ -93,7 +93,7 @@ def main2():
             res = calc_C(n // 2, (t + 1) // 2) * alpha
             distinguish = math.log2(k * res)
 
-        MITM = math.log2(k * calc_C(n, (t + 1) // 2))
+        # MITM = math.log2(k * calc_C(n, (t + 1) // 2))
 
         partial = distinguish
         isd = msg2
@@ -104,9 +104,9 @@ def main2():
         msg3 = math.log2(msg3)
 
 
-        print(f"isd={isd} true_isd={msg3} MITM={MITM} partial={partial} dup={dup_comp}")
+        print(f"isd={isd} true_isd={msg3} partial={partial} dup={dup_comp}")
         isd_list.append(isd)
-        mitm_list.append(MITM)
+        # mitm_list.append(MITM)
         partial_list.append(partial)
         dup_list.append(dup_comp)
         true_isd_list.append(msg3)
@@ -117,7 +117,7 @@ def main2():
     # 绘制四条折线图
     plt.plot(t_values, isd_list, marker='o', label=r'${\text{T}_{\mathsf{eo}}}$')
     plt.plot(t_values, true_isd_list, marker='*', label=r"$\text{T}_{\mathsf{eo'}}$")
-    plt.plot(t_values, mitm_list, marker='s', label=r'$\text{T}_{\mathsf{equiv}}$')
+    # plt.plot(t_values, mitm_list, marker='s', label=r'$\text{T}_{\mathsf{equiv}}$')
     plt.plot(t_values, partial_list, marker='^', label=r'$\text{T}_{\mathsf{partial}}$')
     plt.plot(t_values, dup_list, marker='d', label=r'$\text{T}_{\mathsf{dis}}$')
 
@@ -131,8 +131,7 @@ def main2():
     plt.xticks(range(int(min(t_values)), int(max(t_values)) + 1), fontsize=20)
     plt.yticks(fontsize=20)
     # 显示图形
-    # plt.show()
-    # plt.savefig('gim_watermark_secrity_estim.pdf', bbox_inches='tight')
+    plt.savefig('gim_watermark_secrity_estim.pdf', bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':

@@ -60,15 +60,15 @@ def main():
     logr = 17
     r = int(2**logr)
 
-    plt.figure(figsize=(6, 3.5))
-    n = 2 ** 14
+    plt.figure(figsize=(5,3.5))
+    # n = 2 ** 14
 
     isd_list = []
-    mitm_list = []
+    # mitm_list = []
     partial_list = []
     dup_list = []
 
-    t_values = [3,4,5,6,7,8,9,10,11,12,13]
+    t_values = [3,4,5,6,7,8,9,10,11,12,13,14]
 
     for t in t_values:
         n = r  # * 2
@@ -85,7 +85,7 @@ def main():
         msg2 = math.log2(msg2)
         print(f"msg2={msg2}")
 
-        key_recovery = math.log2(g*calc_C(n, (t+1)//2))
+        # key_recovery = math.log2(g*calc_C(n, (t+1)//2))
 
         # recover one
         if t%2==0:
@@ -112,25 +112,28 @@ def main():
         print(f"duprob={dup}")
         dup = math.log2(n * g) - dup
 
-        print(f"{t}\t{eps}\t{0.5-eps}\t{key_recovery}\t{distinguish}\t{msg2}\t{dup}")
+        print(f"{t}\t{eps}\t{0.5-eps}\t{distinguish}\t{msg2}\t{dup}")
         isd_list.append(msg2)
-        mitm_list.append(key_recovery)
+        # mitm_list.append(key_recovery)
         partial_list.append(distinguish)
         dup_list.append(dup)
 
-    plt.plot(t_values, isd_list, marker='o', label=r'$\text{T}_{\mathsf{ISD}}$')
-    plt.plot(t_values, mitm_list, marker='s', label=r'$\text{T}_{\mathsf{MITM}}$')
+    plt.plot(t_values, isd_list, marker='o', label=r'$\text{T}_{\mathsf{eo}}$')
+    # plt.plot(t_values, mitm_list, marker='s', label=r'$\text{T}_{\mathsf{MITM}}$')
     plt.plot(t_values, partial_list, marker='^', label=r'$\text{T}_{\mathsf{partial}}$')
     plt.plot(t_values, dup_list, marker='d', label=r'$\text{T}_{\mathsf{dis}}$')
 
     # 添加标题和标签
     # plt.title('Time Complexity Comparison', fontsize=14)
-    plt.xlabel('$t$', fontsize=12)
-    plt.ylabel('Time Complexity', fontsize=12)
+    plt.xlabel('$t$', fontsize=20)
+    plt.ylabel('Complexities (bit)', fontsize=20)
 
     # 添加图例和网格
-    plt.legend(fontsize=10, loc='upper left')
+    plt.legend(fontsize=13, loc='best', handlelength=0.8)
     plt.grid(True, linestyle='--', alpha=0.6)
+
+    plt.xticks(range(int(min(t_values)), int(max(t_values)) + 1), fontsize=20)
+    plt.yticks(fontsize=20)
     # 显示图形
     # plt.show()
     plt.savefig('llm_watermark_secrity_estim_origin.pdf', bbox_inches='tight')
