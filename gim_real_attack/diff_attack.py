@@ -61,7 +61,7 @@ def generate_constrained_vectors(n, weight, x=-1, position='front'):
 
 
 def generate_random_vectors(n, weight, x=-1):
-    sampled_indices = random.sample(list(itertools.combinations(range(n), weight)), x)  # 随机选 x 个
+    sampled_indices = random.sample(list(itertools.combinations(range(n), weight)), x)
     return sampled_indices
 
 def part_key_recovery(n,k,t,G,secret_key_dict={}):
