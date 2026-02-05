@@ -7,6 +7,11 @@ The scripts for estimating the complexities of our attacks in Section 5 are loca
 ./calc_complexities
 
 ---
+### Code to generate PRC Data
+
+The code for generating PRC Data are located at:
+LLM: llm_code/llm_encode.py
+GIM: gim_code/main.py
 
 ### PRC Data
 
