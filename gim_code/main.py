@@ -63,7 +63,6 @@ exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
 
 #     return error_rate
 
-# 遍历生成密钥，然后存储相应的编码解码信息
 
 
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
@@ -192,7 +191,7 @@ for i in range(start, start+num):
         else:
             if method == 'prc':
                 prc_codeword_save, prc_codeword, error,payload = Encode(
-                    encoding_key)  # Encode索引进去有error
+                    encoding_key) 
                 errors.append(error.tolist())
                 prc_codewords.append(prc_codeword_save.tolist())
                 init_latents = prc_gaussians.sample(

@@ -13,14 +13,6 @@ def apply_channel_probs(x, channel_probs):
     return x + e
 
 def KeyGen(n, t=3, g=None, r=None, noise_rate=None):
-    '''
-    :param n: 码长
-    :param t: 稀疏程度，可以先从3开始跑
-    :param g: 安全参数，默认为None，会自动算，建议不指定
-    :param r: 取的0.95n，建议取0.95n到0.99n之间
-    :param noise_rate: 论文未明确指定，默认0.1，建议指定，可以从小的开始尝试
-    :return:
-    '''
     # Set basic scheme parameters
     # num_test_bits = int(np.ceil(np.log2(1 / false_positive_rate)))
     secpar = int(np.log2(binom(n, t)))
@@ -69,19 +61,15 @@ def KeyGen(n, t=3, g=None, r=None, noise_rate=None):
     encoding_key = (generator_matrix, one_time_pad, g, noise_rate)
     decoding_key = (generator_matrix, parity_check_matrix, one_time_pad, noise_rate, g, t)
 
-    rows, cols = parity_check_matrix.nonzero()  # 或使用 .nonzero() 的别名 .nz
+    rows, cols = parity_check_matrix.nonzero() 
 
-    # 打印 (行, 列, 值)
     # for r, c in zip(rows, cols):
     #     print(f"({r}, {c}): {parity_check_matrix[r, c]}")
 
     return encoding_key, decoding_key
 
 def Encode(encoding_key):
-    '''
-    :param encoding_key: KeyGen的output
-    :return: 一个长为n的01比特串
-    '''
+
     generator_matrix, one_time_pad, g, noise_rate = encoding_key
     n, k = generator_matrix.shape
 
@@ -93,11 +81,7 @@ def Encode(encoding_key):
     return (payload @ generator_matrix.T + one_time_pad + error)
 
 def Detect(decoding_key, posteriors):
-    '''
-    :param decoding_key: 检测水印的密钥
-    :param posteriors: 长度为n的比特串，即加完水印后tokens转成的01比特串
-    :return:
-    '''
+
     generator_matrix, parity_check_matrix, one_time_pad,  noise_rate, g, t = decoding_key
 
 
@@ -106,10 +90,10 @@ def Detect(decoding_key, posteriors):
     r = parity_check_matrix.shape[0]
 
     sum = 0
-    rows, cols = parity_check_matrix.nonzero()  # 或使用 .nonzero() 的别名 .nz
+    rows, cols = parity_check_matrix.nonzero()
 
 
-    # 打印 (行, 列, 值)
+
     tmp_list = []
     for i in range(r):
         tmp_list.append(0)
