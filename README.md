@@ -13,6 +13,32 @@ The code for generating PRC Data are located at:
 LLM: llm_code/llm_encode.py
 GIM: gim_code/main.py
 
+
+### Watermark Scheme Implementation and PRC Data Generation (Section 6)
+
+Our watermark schemes for LLMs and GIMs are implemented in the following directories:
+
+```
+./llm_code
+./gim_code
+```
+
+To generate the JSON data used in our attacks (including watermark-related PRC keys and codewords), you can run the following scripts:
+
+- **LLM-based watermark generation:**
+  ```
+  ./llm_code/llm_encode.py
+  ```
+
+- **GIM-based watermark generation:**
+  ```
+  ./gim_code/main.py
+  ```
+
+Running the watermark generation scripts may require access to the corresponding model files, such as **DeepSeek** for LLMs or **Stable Diffusion** for GIMs.
+
+---
+
 ### PRC Data
 
 The ZIP files containing JSON data (including keys and codewords of the PRC scheme) are stored in:
