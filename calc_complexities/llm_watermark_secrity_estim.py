@@ -52,9 +52,9 @@ def get_g_dup_prob(n,r,t):
 
 def main():
 
-    logr = 17
-    r = int(2**logr)
-
+    logn = 17
+    #r = int(2**logr)
+    n = int(2**logn)
     plt.figure(figsize=(5,3.5))
 
     isd_list = []
@@ -65,7 +65,6 @@ def main():
     t_values = [3,4,5,6,7,8,9,10,11,12,13,14]
 
     for t in t_values:
-        n = r  # * 2
         r = int(0.99 * n)
         logr = math.log2(r)
 
