@@ -2,11 +2,20 @@
 
 ### Complexity Estimation (Section 5)
 
-The scripts for estimating the complexities of our attacks in Section 5 are located in:
+The scripts for estimating the complexities of our attacks in Section 5 are located in `calc_complexities` directory.
 
-./calc_complexities
+The estimation can be reproduced by running the following commands:
+```
+cd calc_complexities
+python llm_watermark_secrity_estim.py # Figure 4(a), Table 6
+python gim_watermark_secrity_estim.py # Figure 4(b), Table 7
+```
+This will reproduce the following results:
+- `calc_complexities\llm_watermark_secrity_estim.pdf` (Figure 4(a))
+- `calc_complexities\gim_watermark_secrity_estim.pdf` (Figure 4(b))
+- `calc_complexities\llm_watermark_secrity_estim.csv` (Table 6)
+- `calc_complexities\gim_watermark_secrity_estim.csv` (Table 7)
 
----
 ### Code to generate PRC Data
 
 The code for generating PRC Data are located at:

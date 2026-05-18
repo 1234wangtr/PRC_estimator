@@ -1,3 +1,4 @@
+# %%
 import math
 
 import numpy as np
@@ -37,10 +38,13 @@ t_values = [3, 4, 5,6,7]
 def main2():
     plt.figure(figsize=(5,3.5))
     n = 2**14
-
+    eps_list = []
+    rho_list = []
+    noise_rate_list = []
     isd_list = []
     partial_list = []
     dup_list = []
+    dup_prob_list = []
     true_isd_list = []
     lambda_list = []
 
@@ -55,8 +59,12 @@ def main2():
 
         logr = math.log2(r)
         eps = calculate_epsilon(logr, t)
+        eps_list.append(eps)
+        rho = 0.5 - eps
+        rho_list.append(rho)
 
         noise_rate = 1 - 2 ** (-secpar / g ** 2)
+        noise_rate_list.append(noise_rate)
         print(f"logr={logr} t={t} n={n} r={r} eps={eps} g={g} k={k} noise_rate={noise_rate}")
 
 
@@ -70,8 +78,10 @@ def main2():
         for i in range(r):
             no_dup *= (1 - (i) / (calc_C(n - r + i, t - 1)))
             i += 1
-        dup_comp = math.log2(n * k) - math.log2(1 - no_dup)
-        print(f"dup={math.log2(1 - no_dup)} dup_comp={dup_comp}")
+        dup_prob= math.log2(1 - no_dup)
+        dup_comp = math.log2(n * k) - dup_prob
+        dup_prob_list.append(dup_prob)
+        print(f"dup={dup_prob} dup_comp={dup_comp}")
 
 
         if t % 2 == 0:
@@ -123,6 +133,33 @@ def main2():
     plt.yticks(fontsize=20)
     plt.savefig('gim_watermark_secrity_estim.pdf', bbox_inches='tight')
     plt.show()
+    import pandas as pd
+    df = pd.DataFrame({
+        't': t_values,
+        'eps': eps_list,
+        'rho': rho_list,
+        'noise_rate': noise_rate_list,
+        'T_partial': partial_list,
+        'P_weak': dup_prob_list,
+        'T_dis': dup_list,
+        'T_overlay': isd_list,
+        'T_prime_overlay': true_isd_list,
+        'lambda': lambda_list
+    })
+    df["eps"] = df["eps"].round(3)
+    df["rho"] = df["rho"].round(3)
+    df["noise_rate"] = df["noise_rate"].round(3)
+    # round T_* to 2 decimal places
+    df['T_partial'] = df['T_partial'].round(2)
+    df['P_weak'] = df['P_weak'].round(2)
+    df['T_dis'] = df['T_dis'].round(2)
+    df['T_overlay'] = df['T_overlay'].round(2)
+    df['T_prime_overlay'] = df['T_prime_overlay'].round(2)
+    df['lambda'] = df['lambda'].round(0)
+    df.to_csv('gim_watermark_secrity_estim.csv', index=False)
 
 if __name__ == '__main__':
     main2()
+# %%
+
+# %%

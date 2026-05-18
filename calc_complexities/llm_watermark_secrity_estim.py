@@ -2,6 +2,7 @@
 import math
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 sns.set_theme(style="whitegrid", font="Times New Roman",font_scale=1.4)
 def calc_C(big,small):
     sum = 1
@@ -61,7 +62,9 @@ def main():
     partial_list = []
     dup_list = []
     lambda_list = []
-
+    eps_list = []
+    rho_list = []
+    dup_prob_list= []
     t_values = [3,4,5,6,7,8,9,10,11,12,13,14]
 
     for t in t_values:
@@ -69,6 +72,7 @@ def main():
         logr = math.log2(r)
 
         eps = 0.5 / 2**((0.25*logr-1)/t)
+        eps_list.append(eps)
 
 
         g = int(math.log2(calc_C(n,t)))
@@ -99,13 +103,15 @@ def main():
         except:
             dup = -100000
 
-
+        dup_prob_list.append(dup)
         print(f"duprob={dup}")
+        
         dup = math.log2(n * g) - dup
 
         tmp_lambda = math.log2(calc_C(n,t))
-
-        print(f"{t}\t{eps}\t{0.5-eps}\t{distinguish}\t{msg2}\t{dup}\t{tmp_lambda}")
+        rho = 0.5 - eps
+        rho_list.append(rho)
+        print(f"{t}\t{eps}\t{rho}\t{distinguish}\t{msg2}\t{dup}\t{tmp_lambda}")
         isd_list.append(msg2)
         partial_list.append(distinguish)
         dup_list.append(dup)
@@ -115,7 +121,6 @@ def main():
     plt.plot(t_values, partial_list, marker='^', label=r'$\text{T}_{\mathsf{partial}}$')
     plt.plot(t_values, dup_list, marker='d', label=r'$\text{T}_{\mathsf{dis}}$')
     plt.plot(t_values, lambda_list, linestyle='--',color='purple', label=r'$\lambda$')
-
 
     plt.xlabel('$t$', fontsize=20)
     plt.ylabel('Complexities (bit)', fontsize=20)
@@ -127,8 +132,33 @@ def main():
     plt.yticks(fontsize=20)
 
     plt.savefig('llm_watermark_secrity_estim.pdf', bbox_inches='tight')
+    
     plt.show()
+
+    df = pd.DataFrame({
+        't': t_values,
+        'eps': eps_list,
+        'rho': rho_list,
+        'T_partial': partial_list,
+        'P_weak': dup_prob_list,
+        'T_dis': dup_list,
+        'T_overlay': isd_list,
+        'lambda': lambda_list
+    })
+    df["eps"] = df["eps"].round(3)
+    df["rho"] = df["rho"].round(3)
+    # round T_* to 2 decimal places
+    df['T_partial'] = df['T_partial'].round(2)
+    df['P_weak'] = df['P_weak'].round(2)
+    df['T_dis'] = df['T_dis'].round(2)
+    df['T_overlay'] = df['T_overlay'].round(2)
+    df['lambda'] = df['lambda'].round(0)
+    df.to_csv('llm_watermark_secrity_estim.csv', index=False)
 
 if __name__ == '__main__':
     main()
 
+
+# %%
+
+# %%

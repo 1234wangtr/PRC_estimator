@@ -13,13 +13,6 @@ import json
 import pickle
 import torch
 import argparse
-# original_fn = np.random.seed
-# def hook_seed(seed):
-#     print("set seed:", seed)
-#     original_fn(seed)
-# np.random.seed = hook_seed
-# hook_seed(???)
-
 
 parser = argparse.ArgumentParser('Args')
 parser.add_argument('--test_num', type=int, default=256)
@@ -48,21 +41,6 @@ nowm = args.nowm
 fpr = args.fpr
 prc_t = args.prc_t
 exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
-
-# def compare_arrays(float_arr, int_arr):
-#     if len(float_arr) != len(int_arr):
-#         raise ValueError("Arrays must have the same length")
-
-#     if not float_arr or not int_arr:
-#         return 0.0
-
-#     total_positions = len(float_arr)
-#     matching_positions = sum(1 for f, i in zip(float_arr, int_arr) if int(f) == i)
-#     error_count = total_positions - matching_positions
-#     error_rate = error_count / total_positions
-
-#     return error_rate
-
 
 
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
