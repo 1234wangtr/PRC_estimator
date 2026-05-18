@@ -218,7 +218,7 @@ def print_json_keys(file_path,t):
     except FileNotFoundError:
         print(f"Error: file {file_path} not found")
     except json.JSONDecodeError:
-        print("Error：file is not json")
+        print("Error: file is not json")
     except Exception as e:
         print(f"Error: {str(e)}")
 

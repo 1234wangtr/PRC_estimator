@@ -1,14 +1,6 @@
 from diff_attack import *
 
 class WaterImg:
-    def __init__(self):
-        self.secret_key = {}
-        self.public_key = []
-        self.otp = []
-        self.origin_msg_list = []
-        self.inv_msg_list = []
-        self.t = 3
-
     def __init__(self,t,public_key,otp,origin_msg_list=[],inv_msg_list=[],inv_msg_list_v1_5=[],inv_msg_list_v2=[]):
         self.t = t
         self.secret_key = {}

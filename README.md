@@ -48,6 +48,21 @@ Running the watermark generation scripts may require access to the corresponding
 
 ---
 
+### LLM Quality (Section 6.2.1)
+The LLM-generated watermarked and non-watermarked content are zipped in `./llm_data/gen_result`.
+
+To reproduce Figure 5, you can run the following command:
+```
+python llm_code/plot_entropy.py
+```
+
+To check Table 9, you can manually check the following JSON files:
+- `llm_data\gen_result\temperature_1.0\1748357173909375233.json`
+- `llm_data\gen_result\temperature_1.2\1748402150078932357.json`
+- `llm_data\gen_result\temperature_1.4\1748402173162096394.json`
+- `llm_data\gen_result\temperature_1.6\1748402254743413050.json`
+- `llm_data\gen_result\temperature_1.8\1748402215940443270.json`
+
 ### PRC Data
 
 The ZIP files containing JSON data (including keys and codewords of the PRC scheme) are stored in:
