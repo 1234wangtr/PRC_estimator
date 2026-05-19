@@ -2,7 +2,6 @@ import json
 
 import numpy as np
 
-from full_key_recovery import *
 from waterimg_class import *
 
 from diff_attack import *
@@ -191,7 +190,7 @@ if __name__ == "__main__":
     num = 10
     for i in range(1,num+1):
         file_path = "../gim_data/gim_normal_t4/"+ str(i).zfill(4) +".json"
-        print_json_keys(file_path,t=4)
+        print_json_keys(file_path,t=3)
         print(f"avg_err_num={error_num_tot/i}")
         print(f"===dup===")
         print(f"dup_num_tot={dup_num_tot}")
