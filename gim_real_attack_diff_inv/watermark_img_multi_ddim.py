@@ -258,7 +258,8 @@ if __name__ == "__main__":
             f"TPR_SD21:{safe_div(all_inv_succ4, all_inv_tot4)} "
             f"TPR_SD20:{safe_div(all_key_v2_detect, all_key_v2_tot)} "
             f"TPR_SD15:{safe_div(all_key_v15_detect, all_key_v15_tot)} "
-            f"FPR:{safe_div(all_key_plain_detect, all_key_plain_tot)}"
+            f"FPR:{safe_div(all_key_plain_detect, all_key_plain_tot)} "
+            f"Success Rate:{all_msg_tot4/i}"
         )
         print(
             f"Attack II: "
@@ -266,5 +267,6 @@ if __name__ == "__main__":
             f"TPR_SD21:{safe_div(all_inv_succ3, all_inv_tot3)} "
             f"TPR_SD20:{safe_div(all_dup_v2_detect, all_dup_v2_tot)} "
             f"TPR_SD15:{safe_div(all_dup_v15_detect, all_dup_v15_tot)} "
-            f"FPR:{safe_div(all_dup_plain_detect, all_dup_plain_tot)}"
+            f"FPR:{safe_div(all_dup_plain_detect, all_dup_plain_tot)} "
+            f"Success Rate:{all_msg_tot3/i}"
         )

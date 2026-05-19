@@ -22,6 +22,11 @@ threshold = 0.75
 dup_num_tot = 0
 error_num_tot = 0
 
+SEED = 42
+
+random.seed(SEED)
+np.random.seed(SEED)
+
 def print_json_keys(file_path,t):
     global all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1
     global all_msg_tot3, all_msg_succ3, all_inv_tot3, all_inv_succ3
@@ -187,9 +192,9 @@ def safe_div(numerator, denominator):
 
 # 使用示例
 if __name__ == "__main__":
-    num = 10
+    num = 128
     for i in range(1,num+1):
-        file_path = "../gim_data/gim_normal_t4/"+ str(i).zfill(4) +".json"
+        file_path = "../gim_data/gim_normal_t3/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"avg_err_num={error_num_tot/i}")
         print(f"===dup===")
@@ -211,11 +216,11 @@ if __name__ == "__main__":
         TPR_1 = safe_div(all_inv_succ4, all_inv_tot4)
         FPR = safe_div(all_key_plain_detect, all_key_plain_tot)
 
-        print(f"Attack I: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR}")
+        print(f"Attack I: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot4/i}")
 
         # Attack II
         TPR_0 = safe_div(all_msg_succ3, all_msg_tot3)
         TPR_1 = safe_div(all_inv_succ3, all_inv_tot3)
         FPR = safe_div(all_dup_plain_detect, all_dup_plain_tot)
 
-        print(f"Attack II: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR}")
+        print(f"Attack II: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot3/i}")
