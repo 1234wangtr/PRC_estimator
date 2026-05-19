@@ -77,7 +77,8 @@ The ZIP files containing JSON data (including keys and codewords of the PRC sche
 The implementations of the concrete attacks described in Section 6 are provided in:
 
 ./llm_real_attack
-./gim_real_attack
+./gim_real_attack_normal
+./gim_real_attack_diff_inv
 
 To run the attacks, please follow these steps:
 
@@ -87,7 +88,9 @@ To run the attacks, please follow these steps:
 
 2. Run one of the following scripts:
    - read_watertext_data.py (for LLM-based watermark attacks)
+   - read_waterimg_data.py (for GIM-based watermark attacks)
    - watermark_img_multi_ddim.py (for GIM-based watermark attacks)
+   
 
 These scripts output the detection rates for:
 - original codewords,
