@@ -21,7 +21,7 @@ class WaterImg:
         for i in range(len(self.origin_msg_list)):
             rd = random.choices([0, 1], k=len(self.origin_msg_list[0]))
             self.plain_msg_list.append(rd)
-
+        print(f"dbg len:origin {len(origin_msg_list)} inv {len(inv_msg_list)} inv15 {len(inv_msg_list_v1_5)} inv2 {len(inv_msg_list_v2)}")
 
 
     def part_key_recover(self):

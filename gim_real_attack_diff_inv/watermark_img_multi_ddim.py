@@ -124,7 +124,6 @@ def print_json_keys(file_path,t):
                 for j in range(len(inv_codeword_list_v2[i])):
                     inv_codeword_list_v2[i][j] = int(inv_codeword_list_v2[i][j])
 
-
         wim = WaterImg(t=t,public_key=public_key,otp=otp,
                        origin_msg_list=prc_codeword_list,inv_msg_list=inv_codeword_list,
                        inv_msg_list_v1_5=inv_codeword_list_v1_5,inv_msg_list_v2=inv_codeword_list_v2)
@@ -222,11 +221,13 @@ def print_json_keys(file_path,t):
     except Exception as e:
         print(f"Error: {str(e)}")
 
+def safe_div(numerator, denominator):
+    return numerator / denominator if denominator != 0 else float('NaN')
 
 if __name__ == "__main__":
-    num = 10
+    num = 10 #128
     for i in range(1,num+1):
-        file_path = "../gim_data/"+ str(i).zfill(4) +".json"
+        file_path = "../gim_data/gim_diff_inv/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"i={i}   norm={error_num_tot/i}  v15={error_num_tot_v15/i}   v2={error_num_tot_v2/i}")
         print(f"===dup===")
@@ -248,3 +249,22 @@ if __name__ == "__main__":
         print(f"v15 Detect:  {all_key_v15_tot}, {all_key_v15_detect}")
         print(f"v2 All: {all_key_v2_sum}, {all_key_v2_same}")
         print(f"v2 Detect:  {all_key_v2_tot}, {all_key_v2_detect}")
+
+
+        print("===Summary===")
+        print(
+            f"Attack I: "
+            f"TPR_0:{safe_div(all_msg_succ4, all_msg_tot4)} "
+            f"TPR_SD21:{safe_div(all_inv_succ4, all_inv_tot4)} "
+            f"TPR_SD20:{safe_div(all_key_v2_detect, all_key_v2_tot)} "
+            f"TPR_SD15:{safe_div(all_key_v15_detect, all_key_v15_tot)} "
+            f"FPR:{safe_div(all_key_plain_detect, all_key_plain_tot)}"
+        )
+        print(
+            f"Attack II: "
+            f"TPR_0:{safe_div(all_msg_succ3, all_msg_tot3)} "
+            f"TPR_SD21:{safe_div(all_inv_succ3, all_inv_tot3)} "
+            f"TPR_SD20:{safe_div(all_dup_v2_detect, all_dup_v2_tot)} "
+            f"TPR_SD15:{safe_div(all_dup_v15_detect, all_dup_v15_tot)} "
+            f"FPR:{safe_div(all_dup_plain_detect, all_dup_plain_tot)}"
+        )
