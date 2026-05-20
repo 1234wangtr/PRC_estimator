@@ -25,9 +25,13 @@ unzip gim_data.zip -d gim_data
 ```
 - Create a conda environment and install the required dependencies.
 ```
-conda create -n prc-estimator python=3.12 -y
-conda activate prc-estimator
-pip install -r requirements.txt
+conda create -n prc-estimator-llm python=3.11 -y
+conda activate prc-estimator-llm
+pip install -r llm/requirements.txt
+
+conda create -n prc-estimator-gim python=3.11 -y
+conda activate prc-estimator-gim
+pip install -r gim/requirements.txt
 ```
 - Download public GIM and LLM models and prompt datasets.
   - Stable Diffusion 2.1 Base:
@@ -41,10 +45,8 @@ The scripts for estimating the complexities of our attacks in Section 5 are loca
 
 The estimation can be reproduced by running the following commands:
 ```
-cd calc_complexities
-conda activate prc-estimator
-python llm_watermark_secrity_estim.py # Figure 4(a), Table 6
-python gim_watermark_secrity_estim.py # Figure 4(b), Table 7
+conda activate prc-estimator-llm && python llm/security_estim/main.py # Figure 4(a), Table 6
+conda activate prc-estimator-gim && python gim/security_estim/main.py # Figure 4(b), Table 7
 ```
 
 This will reproduce the following results:
@@ -61,9 +63,8 @@ The code for generating PRC watermarked texts (LLMs) and images (GIMs) is provid
 
 To generate the watermarked texts, you can run the following scripts:
 ```
-cd llm_code
-conda activate prc-estimator
-python llm_encode.py
+conda activate prc-estimator-llm
+CUDA_VISIBLE_DEVICES=0 python llm/generation/main.py
 ```
 
 The generated watermarked texts are stored in `./llm_data/gen_result` directory.
@@ -72,9 +73,8 @@ We also provide the generated watermarked texts in `./llm_data/gen_result.zip` f
 
 To generate the watermarked images, you can run the following scripts:
 ```
-cd gim_code
-conda activate prc-estimator
-python main.py
+conda activate prc-estimator-gim
+python gim/generation/main.py
 ```
 
 This script will only store the necessary watermark data in `./gim_data/watermark_data` without storing the generated watermarked images.

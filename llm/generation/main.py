@@ -6,7 +6,7 @@ from transformers import GenerationConfig
 from tqdm import trange
 import json
 import matplotlib.pyplot as plt
-from keygen_api import KeyGen, Encode, Detect, GF
+from llm_prc_api import KeyGen, Encode, Detect, GF
 import math
 import numpy as np
 import torch
@@ -19,7 +19,7 @@ from transformers.generation.logits_process import (
 )
 
 
-model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
+model_path = "/data/huggingface-mirror/dataroot/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
 model = AutoModelForCausalLM.from_pretrained(
     model_path, device_map="auto", torch_dtype=torch.bfloat16)
 tokenizer = AutoTokenizer.from_pretrained(model_path, device_map="auto")
@@ -146,7 +146,7 @@ chats = [
     [
         {"role": "user", "content": "My name of John Doe, I am a software engineer, please write a self-introduction for me."},
     ],
-]*16
+]
 
 
 token_count_log2 = math.ceil(math.log2(model.config.vocab_size))
@@ -181,10 +181,6 @@ def save_to_json(public_key: np.ndarray, secret_key, otp: np.ndarray,
         row_end = secret_key.indptr[i + 1]
         indices = secret_key.indices[row_start:row_end]
         sorted_indices = sorted(indices.tolist())
-        # if len(sorted_indices) >= 3:
-        #     group = [sorted_indices[2], sorted_indices[0], sorted_indices[1]]
-        # else:
-        #     group = sorted_indices + [0] * (3 - len(sorted_indices))
         secret_key_list.append(sorted_indices)
 
     otp_list = otp.tolist()
@@ -293,60 +289,3 @@ for i, chat in enumerate(chats):
         save_to_json(generator_matrix, parity_check_matrix, one_time_pad,
                      _msgs, _msg_decect, _inv_msgs, _inv_msg_detect, _prompts, _orginal_gen, _watermarked_gen,
                      _prompts_tokens, _orginal_gen_tokens, _watermarked_gen_tokens)
-        # with open("results1.json", "a") as f:
-        #     json.dump({
-        #         "correct_rate": np.mean(res_inv == res),
-        #         "avg_entropy": np.array(a_probs).mean(),
-        #         "detect": det,
-        #         "origin_det": origin_det,
-        #         "prompt_content": prompt_content,
-        #         "head_gen": head_gen,
-        #         "benign_gen": benign_gen,
-        #         "generated_text": tokenizer.decode(tok[0][prompt_length:], skip_special_tokens=True),
-        #         "generation_config": generation_config.to_dict(),
-        #         "a_probs": a_probs.tolist(),
-        #         "error_rate": error_rate.tolist(),
-        #     }, f, ensure_ascii=False)
-        #     f.write("\n")
-
-# %%
-
-
-# a_probs.shape
-plt.figure(figsize=(10, 3))
-# plot error rate and a_probs
-plt.plot(a_probs, label=f'token entropy ({token_count_log2} bits)')
-# use a different yaxis, but keeps all ledgends
-# plt.twinx()
-plt.plot(error_rate, label='bit error rate')
-
-plt.xlabel('token position')
-# grid
-plt.legend()
-plt.grid()
-# plt.title('Error rate and max prob')
-plt.legend()
-# # %%
-# plot a scatter that show the relationship between a_probs and error_rate
-plt.figure(figsize=(10, 3))
-plt.scatter(a_probs, error_rate, s=1)
-plt.xlabel('token entropy')
-plt.ylabel('bit error rate')
-# %%
-
-# p0 = 0
-# p1 = 0
-# for i in range(probs.shape[-1]):
-#     # if i's extract_bit-th bit is 0
-#     if i&(1<<extract_bit) == 0:
-#         p0 += probs[0][i]
-#     else:
-#         p1 += probs[0][i]
-# p0,p1
-# %%
-
-
-# generate random bool of 1*15
-
-
-# %%

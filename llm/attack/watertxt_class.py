@@ -1,6 +1,6 @@
-from diff_attack import *
+from llm.attack.diff_attack import *
 
-class WaterImg:
+class WaterTxt:
     def __init__(self):
         self.secret_key = {}
         self.public_key = []

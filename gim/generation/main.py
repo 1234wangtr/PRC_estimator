@@ -10,8 +10,8 @@ import random
 import numpy as np
 
 from datasets import load_dataset
-from src.prc import KeyGen, Encode, Detect
-import src.pseudogaussians as prc_gaussians
+from prc import KeyGen, Encode, Detect
+import pseudogaussians as prc_gaussians
 from inversion import stable_diffusion_pipe, generate, exact_inversion
 
 from scipy.sparse import csr_matrix
@@ -19,8 +19,10 @@ from scipy.sparse import csr_matrix
 parser = argparse.ArgumentParser('Args')
 parser.add_argument('--test_num', type=int, default=16)
 parser.add_argument('--method', type=str, default='prc')
-parser.add_argument('--model_id', type=str,
-                    default='SD15')
+parser.add_argument('--gen_model_id', type=str,
+                    default='SD21')
+parser.add_argument('--inv_model_ids', type=str,
+                    default='SD21, SD2, SD15')
 parser.add_argument('--dataset_id', type=str,
                     default='Gustavosta/Stable-Diffusion-Prompts')  # coco
 parser.add_argument('--inf_steps', type=int, default=50)
@@ -39,7 +41,8 @@ print(f"Using device: {device}")
 n = 4 * 64 * 64  # the length of a PRC codeword
 method = args.method
 test_num = args.test_num
-model_id = args.model_id
+model_id = args.gen_model_id
+inv_model_ids = [mid.strip() for mid in args.inv_model_ids.split(',')]
 dataset_id = args.dataset_id
 nowm = args.nowm
 fpr = args.fpr
@@ -100,29 +103,37 @@ else:
                    for sample in load_dataset(dataset_id)['test']]
 
 prompts = random.sample(all_prompts, test_num)
+if "SD21" in inv_model_ids or model_id == "SD21":
+    pipe_v2_1 = stable_diffusion_pipe(
+        solver_order=1, model_id="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
+    pipe_v2_1.set_progress_bar_config(disable=True)
+else:
+    pipe_v2_1 = None
+if "SD15" in inv_model_ids or model_id == "SD15":
+    pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
+                                         model_id="/data/huggingface-mirror/dataroot/models/sd-legacy/stable-diffusion-v1-5/",
+                                      cache_dir=hf_cache_dir)
+    pipe_v1_5.set_progress_bar_config(disable=True)
+else:
+    pipe_v1_5 = None
 
-# pipe_v2_1 = stable_diffusion_pipe(
-#     solver_order=1, model_id="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
-pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
-                                     model_id="/data/huggingface-mirror/dataroot/models/sd-legacy/stable-diffusion-v1-5/",
-                                  cache_dir=hf_cache_dir)
-# pipe_v2 = stable_diffusion_pipe(solver_order=1,
-#                                 model_id="/data/huggingface-mirror/dataroot/models/Manojb/stable-diffusion-2-base/",
-#                                 cache_dir=hf_cache_dir)
+if "SD2" in inv_model_ids or model_id == "SD2":
+    pipe_v2 = stable_diffusion_pipe(solver_order=1,
+                                    model_id="/data/huggingface-mirror/dataroot/models/Manojb/stable-diffusion-2-base/",
+                                    cache_dir=hf_cache_dir)
+    pipe_v2.set_progress_bar_config(disable=True)
+else:
+    pipe_v2 = None
+if model_id == "SD15":
+    pipe_gen = pipe_v1_5
+elif model_id == "SD21":
+    pipe_gen = pipe_v2_1
+elif model_id == "SD2":
+    pipe_gen = pipe_v2
+else:
+    raise NotImplementedError
 
-# pipi_xl_1 = stable_diffusion_pipe(solver_order=1, model_id="stabilityai/stable-diffusion-xl-base-1.0", cache_dir=hf_cache_dir)
 
-# pipe_v2_1.set_progress_bar_config(disable=True)
-# pipe_v2.set_progress_bar_config(disable=True)
-# pipi_xl_1.set_progress_bar_config(disable=True)
-
-pipe_v1_5.set_progress_bar_config(disable=True)
-
-pipe_gen = {
-    # "SD21": pipe_v2_1,
-    # "SD2": pipe_v2,
-    "SD15": pipe_v1_5
-}[model_id]
 def seed_everything(seed, workers=False):
     os.environ["PL_GLOBAL_SEED"] = str(seed)
     random.seed(seed)
@@ -154,7 +165,7 @@ for i in range(args.start, args.end):
     detection_results_2_1 = []
     detection_results_2 = []
     detection_results_1_5 = []
-
+    filename = f"{i:04d}.json"
     for j in tqdm(range(test_num)):
         current_prompt = prompts[j]
         if nowm:
@@ -181,47 +192,48 @@ for i in range(args.start, args.end):
                                     pipe=pipe_gen
                                     )
         # orig_image.save(f'paperfig/{i}_{j}.png')
+        if "SD21" in inv_model_ids:
+            reversed_latents = exact_inversion(
+                orig_image,
+                prompt='',
+                test_num_inference_steps=args.inf_steps,
+                inv_order=cur_inv_order,
+                pipe=pipe_v2_1
+            )
+            reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
+                torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
+            PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
+            reverse_codes_2_1.append(PRC_reverse_code)
+            detection_results_2_1.append(bool(detection_result))
+        if "SD2" in inv_model_ids:
+            reversed_latents = exact_inversion(
+                orig_image,
+                prompt='',
+                test_num_inference_steps=args.inf_steps,
+                inv_order=cur_inv_order,
+                pipe=pipe_v2
+            )
+            reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
+                torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
+            PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
+            reverse_codes_2.append(PRC_reverse_code)
+            detection_results_2.append(bool(detection_result))
 
-        # reversed_latents = exact_inversion(
-        #     orig_image,
-        #     prompt='',
-        #     test_num_inference_steps=args.inf_steps,
-        #     inv_order=cur_inv_order,
-        #     pipe=pipe_v2_1
-        # )
-        # reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
-        #     torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
-        # PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
-        # reverse_codes_2_1.append(PRC_reverse_code)
-        # detection_results_2_1.append(bool(detection_result))
+        if "SD15" in inv_model_ids:
+            reversed_latents = exact_inversion(
+                orig_image,
+                prompt='',
+                test_num_inference_steps=args.inf_steps,
+                inv_order=cur_inv_order,
+                pipe=pipe_v1_5
+            )
+            reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
+                torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
+            PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
+            reverse_codes_1_5.append(PRC_reverse_code)
+            detection_results_1_5.append(bool(detection_result))
 
-        # reversed_latents = exact_inversion(
-        #     orig_image,
-        #     prompt='',
-        #     test_num_inference_steps=args.inf_steps,
-        #     inv_order=cur_inv_order,
-        #     pipe=pipe_v2
-        # )
-        # reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
-        #     torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
-        # PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
-        # reverse_codes_2.append(PRC_reverse_code)
-        # detection_results_2.append(bool(detection_result))
-
-        reversed_latents = exact_inversion(
-            orig_image,
-            prompt='',
-            test_num_inference_steps=args.inf_steps,
-            inv_order=cur_inv_order,
-            pipe=pipe_v1_5
-        )
-        reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
-            torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
-        PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
-        reverse_codes_1_5.append(PRC_reverse_code)
-        detection_results_1_5.append(bool(detection_result))
-
-        filename = f"{i:04d}.json"
+        
         save_keys_to_json(encoding_key_save, decoding_key_save, OTP,errors,
                         prc_codewords, reverse_codes_2_1, detection_results_2_1, reverse_codes_2, detection_results_2,
                         reverse_codes_1_5, detection_results_1_5,

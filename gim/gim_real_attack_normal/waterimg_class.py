@@ -1,6 +1,6 @@
-from diff_attack import *
+from gim.gim_real_attack_normal.diff_attack import *
 
-class WaterTxt:
+class WaterImg:
     def __init__(self):
         self.secret_key = {}
         self.public_key = []

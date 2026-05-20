@@ -1,4 +1,4 @@
-from diff_attack import *
+from gim.gim_real_attack_diff_inv.diff_attack import *
 
 class WaterImg:
     def __init__(self,t,public_key,otp,origin_msg_list=[],inv_msg_list=[],inv_msg_list_v1_5=[],inv_msg_list_v2=[]):

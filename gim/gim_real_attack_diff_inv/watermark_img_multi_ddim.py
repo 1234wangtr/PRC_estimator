@@ -2,9 +2,9 @@ import json
 
 import numpy as np
 
-from waterimg_class import *
+from gim.gim_real_attack_diff_inv.waterimg_class import *
 
-from diff_attack import *
+from gim.gim_real_attack_diff_inv.diff_attack import *
 
 all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1 = 0,0,0,0
 all_msg_tot3, all_msg_succ3, all_inv_tot3, all_inv_succ3 = 0, 0, 0, 0

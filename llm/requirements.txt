@@ -1,0 +1,17 @@
+torch==2.1.0
+transformers==4.51.3
+tokenizers==0.21.1
+torchvision==0.16.0
+numpy==1.26.0
+ldpc==0.1.51
+galois==0.4.1
+seaborn
+datasets
+compressai
+scikit-image
+opencv-python
+pycryptodome
+accelerate
+scipy
+matplotlib
+jupyter
