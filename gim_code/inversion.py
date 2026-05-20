@@ -25,9 +25,9 @@ def stable_diffusion_pipe(
     pipe = InversableStableDiffusionPipeline.from_pretrained(
         model_id,
         scheduler=scheduler,
-        torch_dtype=torch.float,
+        torch_dtype=torch.bfloat16,
         cache_dir=cache_dir,
-        #safety_checker=None,
+        safety_checker=None,
     )
     pipe = pipe.to(device)
 
@@ -63,7 +63,7 @@ def generate(
         pipe = InversableStableDiffusionPipeline.from_pretrained(
             model_id,
             scheduler=scheduler,
-            torch_dtype=torch.float,
+            torch_dtype=torch.bfloat16,
         )
     pipe = pipe.to(device)
 
@@ -86,7 +86,7 @@ def generate(
         num_inference_steps=num_inference_steps,
         height=image_length,
         width=image_length,
-        latents=init_latents,
+        latents=init_latents.to(pipe.unet.dtype),
     )
     image = output.images[0]
 
@@ -122,7 +122,63 @@ def exact_inversion(
         pipe = InversableStableDiffusionPipeline.from_pretrained(
             model_id,
             scheduler=scheduler,
-            torch_dtype=torch.float,
+            torch_dtype=torch.bfloat16,
+        )
+    pipe = pipe.to(device)
+    text_embeddings_tuple = pipe.encode_prompt(
+        prompt, 'cuda', 1, guidance_scale > 1.0, None
+    )
+    text_embeddings = torch.cat([text_embeddings_tuple[1], text_embeddings_tuple[0]])
+
+    # image to latent
+    image = transform_img(image).unsqueeze(0) if image_tensor is None else image_tensor
+    image =  image.to(torch.bfloat16).to(device)
+    if decoder_inv:
+        image_latents = pipe.decoder_inv(image)
+    else:
+        image_latents = pipe.get_image_latents(image, sample=False)
+    # forward diffusion : image to noise
+    reversed_latents = pipe.forward_diffusion(
+        latents=image_latents,
+        #text_embeds=text_embeddings,
+        text_embeddings=text_embeddings,
+        guidance_scale=guidance_scale,
+        num_inference_steps=test_num_inference_steps,
+        inverse_opt=(inv_order != 0),
+        inv_order=inv_order
+    )
+
+    return reversed_latents
+def exact_inversion_with_grad(
+        image=None,
+        image_tensor=None,
+        prompt='',
+        guidance_scale=3.0,
+        num_inference_steps=50,
+        solver_order=1,
+        test_num_inference_steps=50,
+        inv_order=1,
+        decoder_inv=True,
+        model_id='stabilityai/stable-diffusion-2-1-base',
+        pipe=None,
+):
+    # load stable diffusion pipeline
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if pipe is None:
+        scheduler = DPMSolverMultistepScheduler(
+            beta_end=0.012,
+            beta_schedule='scaled_linear',
+            beta_start=0.00085,
+            num_train_timesteps=1000,
+            prediction_type="epsilon",
+            steps_offset=1,
+            trained_betas=None,
+            solver_order=solver_order,
+        )
+        pipe = InversableStableDiffusionPipeline.from_pretrained(
+            model_id,
+            scheduler=scheduler,
+            torch_dtype=torch.bfloat16,
         )
     pipe = pipe.to(device)
     text_embeddings_tuple = pipe.encode_prompt(
@@ -136,9 +192,9 @@ def exact_inversion(
     if decoder_inv:
         image_latents = pipe.decoder_inv(image)
     else:
-        image_latents = pipe.get_image_latents(image, sample=False)
+        image_latents = pipe.get_image_latents_with_grad(image, sample=False)
     # forward diffusion : image to noise
-    reversed_latents = pipe.forward_diffusion(
+    reversed_latents = pipe.forward_diffusion_with_grad(
         latents=image_latents,
         #text_embeds=text_embeddings,
         text_embeddings=text_embeddings,

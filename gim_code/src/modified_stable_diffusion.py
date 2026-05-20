@@ -157,6 +157,7 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
 
         self.unet = self.unet.float()
+        self.vae = self.vae.float()
         latents = latents.float()
         text_embeddings = text_embeddings.float()
 

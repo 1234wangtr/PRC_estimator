@@ -119,7 +119,9 @@ def Encode(encoding_key, message=None):
     error = GF(np.random.binomial(1, noise_rate, n))
     
     #print("Before add error, Code is",1 - 2 * torch.tensor(payload @ generator_matrix.T + one_time_pad, dtype=float))
-    return torch.tensor(payload @ generator_matrix.T + one_time_pad + error, dtype=float), 1 - 2 * torch.tensor(payload @ generator_matrix.T + one_time_pad + error, dtype=float),error,payload
+    x=payload @ generator_matrix.T
+
+    return 1 - 2 * torch.tensor(x + one_time_pad + error, dtype=float), x, one_time_pad, error
 
 
 ### Detector
@@ -185,7 +187,8 @@ def Decode(decoding_key, posteriors, print_progress=False, max_bp_iter=None):
     ordered_generator_matrix = generator_matrix[confidence_order]
     ordered_x_decoded = x_decoded[confidence_order]
 
-    
+    # 在调用 GF() 前先将 ordered_x_decoded 转换为整数  经过修改
+    #在水印嵌入过程中，我们通常会将原始信息编码为二进制（0/1）序列，并且在反演阶段，经过一系列操作（例如调用 np.sign 以及信道解码等），最终目标就是恢复出原始的二值信息。因此，将反演得到的连续值（经过 erf 映射后）按 0 为界限二值化，是符合设计逻辑的。即使有轻微的“丢失”，只要大部分数值都能正确归入 0 或 1，就不会影响水印的检测与解码效果。
     # ordered_x_decoded = np.array(ordered_x_decoded, dtype=np.int64)
 
     # Find the first (according to the confidence order) linearly independent set of rows of the generator matrix.
@@ -196,7 +199,9 @@ def Decode(decoding_key, posteriors, print_progress=False, max_bp_iter=None):
     # Solve the system.
     if print_progress:
         print("Solving linear system...")
-    recovered_string = np.linalg.solve(ordered_generator_matrix[top_invertible_rows], GF(ordered_x_decoded[top_invertible_rows]))
+    a = ordered_x_decoded[top_invertible_rows]
+    # print(a)
+    recovered_string = np.linalg.solve(ordered_generator_matrix[top_invertible_rows], GF(a.astype(int)))
 
     if not (recovered_string[:len(test_bits)] == test_bits).all():
         return None
