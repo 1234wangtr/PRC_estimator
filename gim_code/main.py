@@ -1,37 +1,41 @@
 import os
-from scipy.sparse import csr_matrix
-from inversion import stable_diffusion_pipe, exact_inversion
-from src.prc import Detect, Decode
-from inversion import stable_diffusion_pipe, generate
-import src.pseudogaussians as prc_gaussians
-from src.prc import KeyGen, Encode, str_to_bin, bin_to_str
-from datasets import load_dataset
-import numpy as np
-import random
-from tqdm import tqdm
-import json
-import pickle
-import torch
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+
 import argparse
+import torch
+import pickle
+import json
+from tqdm import tqdm
+import random
+import numpy as np
+
+from datasets import load_dataset
+from src.prc import KeyGen, Encode, Detect
+import src.pseudogaussians as prc_gaussians
+from inversion import stable_diffusion_pipe, generate, exact_inversion
+
+from scipy.sparse import csr_matrix
 
 parser = argparse.ArgumentParser('Args')
-parser.add_argument('--test_num', type=int, default=256)
-parser.add_argument('--method', type=str, default='prc')  # gs, tr, prc
+parser.add_argument('--test_num', type=int, default=16)
+parser.add_argument('--method', type=str, default='prc')
 parser.add_argument('--model_id', type=str,
-                    default='stabilityai/stable-diffusion-2-1-base')
+                    default='SD15')
 parser.add_argument('--dataset_id', type=str,
                     default='Gustavosta/Stable-Diffusion-Prompts')  # coco
 parser.add_argument('--inf_steps', type=int, default=50)
 parser.add_argument('--nowm', type=int, default=0)
 parser.add_argument('--fpr', type=float, default=0.00001)
 parser.add_argument('--prc_t', type=int, default=3)
+parser.add_argument('--start', type=int, default=0)
+parser.add_argument('--end', type=int, default=8)
 args = parser.parse_args()
 print(args)
-start = 400
-num = 5
+
 
 hf_cache_dir = ''
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f"Using device: {device}")
 n = 4 * 64 * 64  # the length of a PRC codeword
 method = args.method
 test_num = args.test_num
@@ -42,7 +46,7 @@ fpr = args.fpr
 prc_t = args.prc_t
 exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
 
-
+os.makedirs(f"results-{model_id}/keys-t{prc_t}", exist_ok=True)
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
                       errors:list,prc_codewords: list, reverse_codes: list, detections: list,
                       reverse_codes_v2: list, detections_v2: list,
@@ -82,21 +86,10 @@ def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.nd
         "PRC_reverse_code_v1_5": reverse_codes_v15,
         "detection_result_v1_5": detections_v15
     }
-    os.makedirs("keys-t3-256", exist_ok=True)
-    with open("keys-t3-256/"+filename, "w") as f:
-        json.dump(data, f, indent=2)
-    os.makedirs("paperfig-t3-256", exist_ok=True)
-    with open("paperfig-t3-256/"+filename, "w") as f:
+    
+    with open(f"results-{model_id}/keys-t{prc_t}/"+filename, "w") as f:
         json.dump(data, f, indent=2)
 
-
-if dataset_id == 'coco':
-    save_folder = f'./results-t3-256/{exp_id}_coco/original_images'
-else:
-    save_folder = f'./results-t3-256/{exp_id}/original_images'
-if not os.path.exists(save_folder):
-    os.makedirs(save_folder)
-print(f'Saving original images to {save_folder}')
 
 
 if dataset_id == 'coco':
@@ -108,25 +101,28 @@ else:
 
 prompts = random.sample(all_prompts, test_num)
 
-pipe = stable_diffusion_pipe(
-    solver_order=1, model_id=model_id, cache_dir=hf_cache_dir)
-# pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
-#                                   model_id=model_id,
-#                                   #    model_id="sd-legacy/stable-diffusion-v1-5",
-#                                   cache_dir=hf_cache_dir)
+# pipe_v2_1 = stable_diffusion_pipe(
+#     solver_order=1, model_id="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
+pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
+                                     model_id="/data/huggingface-mirror/dataroot/models/sd-legacy/stable-diffusion-v1-5/",
+                                  cache_dir=hf_cache_dir)
 # pipe_v2 = stable_diffusion_pipe(solver_order=1,
-#                                 model_id=model_id,
-#                                 # model_id="stabilityai/stable-diffusion-2-base",
+#                                 model_id="/data/huggingface-mirror/dataroot/models/Manojb/stable-diffusion-2-base/",
 #                                 cache_dir=hf_cache_dir)
+
 # pipi_xl_1 = stable_diffusion_pipe(solver_order=1, model_id="stabilityai/stable-diffusion-xl-base-1.0", cache_dir=hf_cache_dir)
 
-pipe.set_progress_bar_config(disable=True)
+# pipe_v2_1.set_progress_bar_config(disable=True)
 # pipe_v2.set_progress_bar_config(disable=True)
 # pipi_xl_1.set_progress_bar_config(disable=True)
 
-# pipe_v1_5.set_progress_bar_config(disable=True)
+pipe_v1_5.set_progress_bar_config(disable=True)
 
-
+pipe_gen = {
+    # "SD21": pipe_v2_1,
+    # "SD2": pipe_v2,
+    "SD15": pipe_v1_5
+}[model_id]
 def seed_everything(seed, workers=False):
     os.environ["PL_GLOBAL_SEED"] = str(seed)
     random.seed(seed)
@@ -140,7 +136,7 @@ def seed_everything(seed, workers=False):
 var = 1.5
 cur_inv_order = 0
 
-for i in range(start, start+num):
+for i in range(args.start, args.end):
     seed_everything(42+1000*i)
     (encoding_key_ori, decoding_key_ori) = KeyGen(
         n, false_positive_rate=fpr, t=prc_t)
@@ -173,30 +169,31 @@ for i in range(start, start+num):
                 errors.append(error.tolist())
                 prc_codewords.append(prc_codeword_save.tolist())
                 init_latents = prc_gaussians.sample(
-                    prc_codeword).reshape(1, 4, 64, 64).to(device)
+                    prc_codeword_save).reshape(1, 4, 64, 64).to(device)
             else:
                 raise NotImplementedError
-        current_prompt = "the day that aliens met us, digital art, epic, lighting, color harmony, volumetric lighting, matte painting, chromatic aberration, shallow depth of field, epic composition, trending on artstation"
+        #current_prompt = "the day that aliens met us, digital art, epic, lighting, color harmony, volumetric lighting, matte painting, chromatic aberration, shallow depth of field, epic composition, trending on artstation"
+        # print("Tensor dtype:" , init_latents.dtype, "Model dtype:", pipe_gen.unet.dtype,)
         orig_image, _, _ = generate(prompt=current_prompt,
                                     init_latents=init_latents,
                                     num_inference_steps=args.inf_steps,
                                     solver_order=1,
-                                    pipe=pipe
+                                    pipe=pipe_gen
                                     )
-        orig_image.save(f'paperfig/nowatermark/{j}.png')
+        # orig_image.save(f'paperfig/{i}_{j}.png')
 
-        reversed_latents = exact_inversion(
-            orig_image,
-            prompt='',
-            test_num_inference_steps=args.inf_steps,
-            inv_order=cur_inv_order,
-            pipe=pipe
-        )
-        reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
-            torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
-        PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
-        reverse_codes_2_1.append(PRC_reverse_code)
-        detection_results_2_1.append(bool(detection_result))
+        # reversed_latents = exact_inversion(
+        #     orig_image,
+        #     prompt='',
+        #     test_num_inference_steps=args.inf_steps,
+        #     inv_order=cur_inv_order,
+        #     pipe=pipe_v2_1
+        # )
+        # reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
+        #     torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
+        # PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
+        # reverse_codes_2_1.append(PRC_reverse_code)
+        # detection_results_2_1.append(bool(detection_result))
 
         # reversed_latents = exact_inversion(
         #     orig_image,
@@ -211,22 +208,22 @@ for i in range(start, start+num):
         # reverse_codes_2.append(PRC_reverse_code)
         # detection_results_2.append(bool(detection_result))
 
-        # reversed_latents = exact_inversion(
-        #     orig_image,
-        #     prompt='',
-        #     test_num_inference_steps=args.inf_steps,
-        #     inv_order=cur_inv_order,
-        #     pipe=pipe_v1_5
-        # )
-        # reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
-        #     torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
-        # PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
-        # reverse_codes_1_5.append(PRC_reverse_code)
-        # detection_results_1_5.append(bool(detection_result))
+        reversed_latents = exact_inversion(
+            orig_image,
+            prompt='',
+            test_num_inference_steps=args.inf_steps,
+            inv_order=cur_inv_order,
+            pipe=pipe_v1_5
+        )
+        reversed_prc = prc_gaussians.recover_posteriors(reversed_latents.to(
+            torch.float64).flatten().cpu(), variances=float(var)).flatten().cpu()
+        PRC_reverse_code, detection_result = Detect(decoding_key, reversed_prc)
+        reverse_codes_1_5.append(PRC_reverse_code)
+        detection_results_1_5.append(bool(detection_result))
 
-    filename = f"{i+2:04d}.json"
-    save_keys_to_json(encoding_key_save, decoding_key_save, OTP,errors,
-                      prc_codewords, reverse_codes_2_1, detection_results_2_1, reverse_codes_2, detection_results_2,
-                      reverse_codes_1_5, detection_results_1_5,
-                      test_num, filename=filename)
+        filename = f"{i:04d}.json"
+        save_keys_to_json(encoding_key_save, decoding_key_save, OTP,errors,
+                        prc_codewords, reverse_codes_2_1, detection_results_2_1, reverse_codes_2, detection_results_2,
+                        reverse_codes_1_5, detection_results_1_5,
+                        test_num, filename=filename)
     print(f"Saved key and results to {filename}")
