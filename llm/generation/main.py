@@ -17,16 +17,32 @@ from transformers.generation.logits_process import (
     TopKLogitsWarper,
     TopPLogitsWarper
 )
+import argparse
+# add arg: t, gen_start, gen_end
+parser = argparse.ArgumentParser()
+parser.add_argument("--prc_t", type=int, default=3)
+parser.add_argument("--gen_start", type=int, default=0)
+parser.add_argument("--gen_end", type=int, default=128)
+parser.add_argument("--temperature", type=float, default=1.8)
+parser.add_argument("--model_name", type=str, default="Deepseek", choices=["Deepseek", "Qwen"])
+args = parser.parse_args()
+model_name = args.model_name
+if model_name == "Deepseek":
+    model_path = "/data/huggingface-mirror/dataroot/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
+elif model_name == "Qwen":
+    model_path = "/data/huggingface-mirror/dataroot/models/Qwen/Qwen3-8B/"
+else:
+    raise ValueError("Invalid model_id")
+t = int(args.prc_t)
+temperature = float(args.temperature)
 
-
-model_path = "/data/huggingface-mirror/dataroot/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
 model = AutoModelForCausalLM.from_pretrained(
     model_path, device_map="auto", torch_dtype=torch.bfloat16)
 tokenizer = AutoTokenizer.from_pretrained(model_path, device_map="auto")
 model.eval()
-t = 3
-os.makedirs(f"data/llm/gen_result_t{t}", exist_ok=True)
-filename = f"data/llm/gen_result_t{t}/{int(time.time_ns())}.json"
+output_dir = f"llm/data/gen_result_model_{model_name}_t_{t}_temperature_{temperature}"
+os.makedirs(output_dir, exist_ok=True)
+
 
 
 def sample_token(x, probs):
@@ -87,7 +103,7 @@ def get_logits_processor(generation_config: GenerationConfig):
 head_token_length = 0
 max_new_tokens = 1024
 generation_config = GenerationConfig(
-    temperature=1.8,
+    temperature=temperature,
     top_k=0,
     top_p=1.0,
     do_sample=True,
@@ -152,137 +168,136 @@ chats = [
 token_count_log2 = math.ceil(math.log2(model.config.vocab_size))
 n = token_count_log2*max_new_tokens
 
-enc, dec = KeyGen(n, t)
-(generator_matrix, parity_check_matrix, one_time_pad, noise_rate, g, t) = dec
+gen_start = int(args.gen_start)
+gen_end = int(args.gen_end)
+for exp_i in range(gen_start, gen_end):
+    enc, dec = KeyGen(n, t)
+    filename = f"{output_dir}/{exp_i}.json"
+    (generator_matrix, parity_check_matrix, one_time_pad, noise_rate, g, t) = dec
 
-_msgs = []
-_msg_decect = []
-_inv_msgs = []
-_inv_msg_detect = []
-_prompts = []
-_prompts_tokens = []
-_orginal_gen = []
-_orginal_gen_tokens = []
-_watermarked_gen = []
-_watermarked_gen_tokens = []
-
-
-def save_to_json(public_key: np.ndarray, secret_key, otp: np.ndarray,
-                 msgs: list, msgs_decect: list,
-                 inv_msgs: list, inv_msgs_detect: list,
-                 prompts: list, original_gen: list,
-                 watermarked_gen: list, prompt_tokens: list,
-                 original_gen_tokens: list, watermarked_gen_tokens: list):
-
-    public_key_list = public_key.tolist()
-    secret_key_list = []
-    for i in range(secret_key.shape[0]):
-        row_start = secret_key.indptr[i]
-        row_end = secret_key.indptr[i + 1]
-        indices = secret_key.indices[row_start:row_end]
-        sorted_indices = sorted(indices.tolist())
-        secret_key_list.append(sorted_indices)
-
-    otp_list = otp.tolist()
-
-    data = {
-        "secret_key": secret_key_list,
-        "public_key": public_key_list,
-        "one_time_pad": otp_list,
-        "msg": {
-            "num": str(len(msgs)),
-            "succ": str(msgs_decect.count(True)),
-            "val": np.array(msgs).tolist(),
-        },
-        "inv_msg": {
-            "num": str(len(inv_msgs)),
-            "succ": str(inv_msgs_detect.count(True)),
-            "val": np.array(inv_msgs).tolist(),
-        },
-        "prompt": prompts,
-        "origin_sentence": original_gen,
-        "watermark_sentence": watermarked_gen,
-        "prompt_tokens": prompt_tokens,
-        "origin_sentence_tokens": original_gen_tokens,
-        "watermark_sentence_tokens": watermarked_gen_tokens,
-    }
-
-    with open(filename, "w") as f:
-        json.dump(data, f, ensure_ascii=False)
+    _msgs = []
+    _msg_decect = []
+    _inv_msgs = []
+    _inv_msg_detect = []
+    _prompts = []
+    _prompts_tokens = []
+    _orginal_gen = []
+    _orginal_gen_tokens = []
+    _watermarked_gen = []
+    _watermarked_gen_tokens = []
 
 
-for i, chat in enumerate(chats):
-    print(f"=== Sample {i+1}/{len(chats)} ===")
-    eos_end = True
-    while eos_end:
-        res = Encode(encoding_key=enc)
-        origin_det = Detect(decoding_key=dec, posteriors=res)
+    def save_to_json(public_key: np.ndarray, secret_key, otp: np.ndarray,
+                    msgs: list, msgs_decect: list,
+                    inv_msgs: list, inv_msgs_detect: list,
+                    prompts: list, original_gen: list,
+                    watermarked_gen: list, prompt_tokens: list,
+                    original_gen_tokens: list, watermarked_gen_tokens: list):
 
-        tok = tokenizer.apply_chat_template(
-            chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
+        public_key_list = public_key.tolist()
+        secret_key_list = []
+        for i in range(secret_key.shape[0]):
+            row_start = secret_key.indptr[i]
+            row_end = secret_key.indptr[i + 1]
+            indices = secret_key.indices[row_start:row_end]
+            sorted_indices = sorted(indices.tolist())
+            secret_key_list.append(sorted_indices)
 
-        prompt_length = tok.shape[1]
+        otp_list = otp.tolist()
 
-        tok = model.generate(
-            input_ids=tok,
-            **generation_config.to_dict(),
-        )
+        data = {
+            "secret_key": secret_key_list,
+            "public_key": public_key_list,
+            "one_time_pad": otp_list,
+            "msg": {
+                "num": str(len(msgs)),
+                "succ": str(msgs_decect.count(True)),
+                "val": np.array(msgs).tolist(),
+            },
+            "inv_msg": {
+                "num": str(len(inv_msgs)),
+                "succ": str(inv_msgs_detect.count(True)),
+                "val": np.array(inv_msgs).tolist(),
+            },
+            "prompt": prompts,
+            "origin_sentence": original_gen,
+            "watermark_sentence": watermarked_gen,
+            "prompt_tokens": prompt_tokens,
+            "origin_sentence_tokens": original_gen_tokens,
+            "watermark_sentence_tokens": watermarked_gen_tokens,
+        }
 
-        prompt_content = tokenizer.decode(
-            tok[0][:prompt_length], skip_special_tokens=True)
-        head_gen = tokenizer.decode(
-            tok[0][prompt_length:head_token_length+prompt_length], skip_special_tokens=True)
-        benign_gen = tokenizer.decode(
-            tok[0][prompt_length+head_token_length:], skip_special_tokens=True)
-        prompt_tokens = tok[0][:prompt_length].tolist()
-        benign_gen_tokens = tok[0][prompt_length+head_token_length:].tolist()
+        with open(filename, "w") as f:
+            json.dump(data, f, ensure_ascii=False)
 
-        tok = tok[:, :prompt_length+head_token_length]
-        prompt_length = tok.shape[1]
-        a_probs = []
 
-        eos_end = False
-        with torch.no_grad():
-            for i in trange(max_new_tokens):
-                x = np.array(res[i*token_count_log2:(i+1) *
-                                 token_count_log2].reshape(1, -1).tolist())
-                output = model(input_ids=tok, return_dict=True)
-                last_logits = output.logits[:, -1, :]
-                last_score = logits_processor(tok, last_logits)
-                probs = torch.nn.functional.softmax(last_score, dim=-1)
-                en_score = get_entropy(probs, softmax=False)
-                en_logit = get_entropy(last_logits, softmax=True)
-                a_probs.append(en_score)
-                sampled_token = sample_token(x, probs)
-                tok = torch.cat(
-                    [tok, torch.tensor([[sampled_token]]).to(tok.device)], dim=1)
+    for i, chat in enumerate(chats):
+        print(f"=== Sample {i+1}/{len(chats)} ===")
+        eos_end = True
+        while eos_end:
+            res = Encode(encoding_key=enc)
+            origin_det = Detect(decoding_key=dec, posteriors=res)
 
-        if eos_end:
-            print("eos occurred. gen len:",
-                  tok.shape[1]-prompt_length, "resampling...")
-            continue
-        generated = tokenizer.decode(
-            tok[0][prompt_length:], skip_special_tokens=True)
-        res_inv = GF(np.concatenate(
-            [int_to_bits(i.item(), token_count_log2) for i in tok[0][prompt_length:]]))
-        det = Detect(decoding_key=dec, posteriors=res_inv)
+            tok = tokenizer.apply_chat_template(
+                chat, tokenize=True, add_generation_prompt=True, return_tensors="pt").to(model.device)
 
-        print("correct rate,", np.mean(res_inv == res),
-              ", avg entropy,", np.array(a_probs).mean())
-        error_rate = np.mean(
-            (res_inv != res).reshape(-1, token_count_log2), axis=1)
-        a_probs = np.array(a_probs)
+            prompt_length = tok.shape[1]
 
-        _msgs.append(res)
-        _msg_decect.append(origin_det)
-        _inv_msgs.append(res_inv)
-        _inv_msg_detect.append(det)
-        _prompts.append(prompt_content)
-        _orginal_gen.append(benign_gen)
-        _watermarked_gen.append(generated)
-        _prompts_tokens.append(prompt_tokens)
-        _orginal_gen_tokens.append(benign_gen_tokens)
-        _watermarked_gen_tokens.append(tok[0][prompt_length:].tolist())
-        save_to_json(generator_matrix, parity_check_matrix, one_time_pad,
-                     _msgs, _msg_decect, _inv_msgs, _inv_msg_detect, _prompts, _orginal_gen, _watermarked_gen,
-                     _prompts_tokens, _orginal_gen_tokens, _watermarked_gen_tokens)
+            tok = model.generate(
+                input_ids=tok,
+                **generation_config.to_dict(),
+            )
+
+            prompt_content = tokenizer.decode(
+                tok[0][:prompt_length], skip_special_tokens=True)
+            head_gen = tokenizer.decode(
+                tok[0][prompt_length:head_token_length+prompt_length], skip_special_tokens=True)
+            benign_gen = tokenizer.decode(
+                tok[0][prompt_length+head_token_length:], skip_special_tokens=True)
+            prompt_tokens = tok[0][:prompt_length].tolist()
+            benign_gen_tokens = tok[0][prompt_length+head_token_length:].tolist()
+
+            tok = tok[:, :prompt_length+head_token_length]
+            prompt_length = tok.shape[1]
+            a_probs = []
+
+            with torch.no_grad():
+                for i in trange(max_new_tokens):
+                    x = np.array(res[i*token_count_log2:(i+1) *
+                                    token_count_log2].reshape(1, -1).tolist())
+                    output = model(input_ids=tok, return_dict=True)
+                    last_logits = output.logits[:, -1, :]
+                    last_score = logits_processor(tok, last_logits)
+                    probs = torch.nn.functional.softmax(last_score, dim=-1)
+                    en_score = get_entropy(probs, softmax=False)
+                    en_logit = get_entropy(last_logits, softmax=True)
+                    a_probs.append(en_score)
+                    sampled_token = sample_token(x, probs)
+                    tok = torch.cat(
+                        [tok, torch.tensor([[sampled_token]]).to(tok.device)], dim=1)
+
+            generated = tokenizer.decode(
+                tok[0][prompt_length:], skip_special_tokens=True)
+            res_inv = GF(np.concatenate(
+                [int_to_bits(i.item(), token_count_log2) for i in tok[0][prompt_length:]]))
+            det = Detect(decoding_key=dec, posteriors=res_inv)
+
+            print("correct rate,", np.mean(res_inv == res),
+                ", avg entropy,", np.array(a_probs).mean())
+            error_rate = np.mean(
+                (res_inv != res).reshape(-1, token_count_log2), axis=1)
+            a_probs = np.array(a_probs)
+
+            _msgs.append(res)
+            _msg_decect.append(origin_det)
+            _inv_msgs.append(res_inv)
+            _inv_msg_detect.append(det)
+            _prompts.append(prompt_content)
+            _orginal_gen.append(benign_gen)
+            _watermarked_gen.append(generated)
+            _prompts_tokens.append(prompt_tokens)
+            _orginal_gen_tokens.append(benign_gen_tokens)
+            _watermarked_gen_tokens.append(tok[0][prompt_length:].tolist())
+            save_to_json(generator_matrix, parity_check_matrix, one_time_pad,
+                        _msgs, _msg_decect, _inv_msgs, _inv_msg_detect, _prompts, _orginal_gen, _watermarked_gen,
+                        _prompts_tokens, _orginal_gen_tokens, _watermarked_gen_tokens)

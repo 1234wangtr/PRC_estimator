@@ -75,17 +75,19 @@ This will reproduce the following results:
 To generate the watermarked texts, you can run the following scripts:
 ```bash
 conda activate prc-estimator-llm
-CUDA_VISIBLE_DEVICES=0 python llm/generation/main.py
+python llm/generation/main.py --prc_t 3 --model_name Deepseek --temperature 1.8 --gen_start 0 --gen_end 128
+python llm/generation/main.py --prc_t 4 --model_name Deepseek --temperature 1.8 --gen_start 0 --gen_end 128
 ```
 
-This will generate watermarked texts and the associated PRC data in the `data/llm/gen_result_t<t>` directory.
+This will generate watermarked texts and the associated PRC data in the `data/llm/gen_result_*` directory.
 
 #### Concrete Attacks (Section 6.2, Table 3)
 The implementations of the Attack I and Attack II are provided in `llm/attack`.
 
 To run the attacks and reproduce Table 3, you can run the following scripts:
 ```bash
-conda activate prc-estimator-llm && python llm/attack/attack1_2_main.py
+conda activate prc-estimator-llm
+python llm/attack/attack1_2_main.py
 ```
 
 This will output the corresponding data for Table 3 in the terminal.
