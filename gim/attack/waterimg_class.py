@@ -1,4 +1,4 @@
-from gim.gim_real_attack_normal.diff_attack import *
+from diff_attack import *
 
 class WaterImg:
     def __init__(self):
