@@ -169,7 +169,7 @@ def safe_div(numerator, denominator):
 if __name__ == "__main__":
     num = 8
     for i in range(1,num+1):
-        file_path = "../llm_data/"+ str(i).zfill(4) +".json"
+        file_path = "../data/llm_data_10/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"avg_err_num={error_num_tot / i}")
         print(f"===dup===")

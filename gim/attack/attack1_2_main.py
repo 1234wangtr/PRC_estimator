@@ -192,9 +192,9 @@ def safe_div(numerator, denominator):
 
 
 if __name__ == "__main__":
-    num = 128
+    num = 10
     for i in range(1,num+1):
-        file_path = "../gim_data/gim_normal_t3/"+ str(i).zfill(4) +".json"
+        file_path = "../data/gim_data_10/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"avg_err_num={error_num_tot/i}")
         print(f"===dup===")

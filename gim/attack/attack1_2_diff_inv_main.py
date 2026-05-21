@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from waterimg_class_multi_ddim import *
+from waterimg_class_multi_inv import *
 
 from diff_attack import *
 
@@ -227,7 +227,7 @@ def safe_div(numerator, denominator):
 if __name__ == "__main__":
     num = 10 
     for i in range(1,num+1):
-        file_path = "../gim_data/gim_diff_inv/"+ str(i).zfill(4) +".json"
+        file_path = "../data/gim_data_10/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"i={i}   norm={error_num_tot/i}  v15={error_num_tot_v15/i}   v2={error_num_tot_v2/i}")
         print(f"===dup===")
