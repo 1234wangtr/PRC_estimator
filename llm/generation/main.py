@@ -28,9 +28,9 @@ parser.add_argument("--model_name", type=str, default="Deepseek", choices=["Deep
 args = parser.parse_args()
 model_name = args.model_name
 if model_name == "Deepseek":
-    model_path = "/data/huggingface-mirror/dataroot/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
+    model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
 elif model_name == "Qwen":
-    model_path = "/data/huggingface-mirror/dataroot/models/Qwen/Qwen3-8B/"
+    model_path = "Qwen/Qwen3-8B/"
 else:
     raise ValueError("Invalid model_id")
 t = int(args.prc_t)

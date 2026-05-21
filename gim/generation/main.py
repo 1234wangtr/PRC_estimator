@@ -1,7 +1,5 @@
 
 import os
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-
 import argparse
 import torch
 import pickle
@@ -106,13 +104,13 @@ else:
 prompts = random.sample(all_prompts, test_num)
 if "SD21" in inv_model_ids or model_id == "SD21":
     pipe_v2_1 = stable_diffusion_pipe(
-        solver_order=1, model_id="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
+        solver_order=1, model_id="stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
     pipe_v2_1.set_progress_bar_config(disable=True)
 else:
     pipe_v2_1 = None
 if "SD15" in inv_model_ids or model_id == "SD15":
     pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
-                                         model_id="/data/huggingface-mirror/dataroot/models/sd-legacy/stable-diffusion-v1-5/",
+                                         model_id="sd-legacy/stable-diffusion-v1-5/",
                                       cache_dir=hf_cache_dir)
     pipe_v1_5.set_progress_bar_config(disable=True)
 else:
@@ -120,7 +118,7 @@ else:
 
 if "SD2" in inv_model_ids or model_id == "SD2":
     pipe_v2 = stable_diffusion_pipe(solver_order=1,
-                                    model_id="/data/huggingface-mirror/dataroot/models/Manojb/stable-diffusion-2-base/",
+                                    model_id="Manojb/stable-diffusion-2-base/",
                                     cache_dir=hf_cache_dir)
     pipe_v2.set_progress_bar_config(disable=True)
 else:

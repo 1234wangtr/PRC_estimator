@@ -1,8 +1,6 @@
 import sys
 sys.path.append("gim/generation")
 import os
-
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 import argparse
 import pickle
 import torch
@@ -18,7 +16,7 @@ parser.add_argument("--method", type=str, default="prc")
 parser.add_argument(
     "--model_id",
     type=str,
-    default="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base",
+    default="stabilityai/stable-diffusion-2-1-base",
 )
 parser.add_argument(
     "--dataset_id", type=str, default="Gustavosta/Stable-Diffusion-Prompts"
