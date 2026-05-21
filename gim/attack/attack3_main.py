@@ -1,4 +1,5 @@
-
+import sys
+sys.path.append("gim/generation")
 import os
 
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
@@ -7,8 +8,8 @@ import pickle
 import torch
 from PIL import Image
 from tqdm import tqdm
-from src.prc import Detect, Decode
-import src.pseudogaussians as prc_gaussians
+from prc import Detect, Decode
+import pseudogaussians as prc_gaussians
 from inversion import stable_diffusion_pipe, exact_inversion, generate
 
 parser = argparse.ArgumentParser("Args")
@@ -17,7 +18,7 @@ parser.add_argument("--method", type=str, default="prc")
 parser.add_argument(
     "--model_id",
     type=str,
-    default="stabilityai/stable-diffusion-2-1-base",
+    default="/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base",
 )
 parser.add_argument(
     "--dataset_id", type=str, default="Gustavosta/Stable-Diffusion-Prompts"
@@ -47,9 +48,12 @@ dataset_id = args.dataset_id
 nowm = args.nowm
 fpr = args.fpr
 prc_t = args.prc_t
-exp_id = f"{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}"
+exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
 
-with open(f"keys/{exp_id}.pkl", "rb") as f:
+
+save_folder = f'gim/data/for_attack3_{exp_id}'
+
+with open(f"{save_folder}/keys/{exp_id}.pkl", "rb") as f:
     encoding_key, decoding_key = pickle.load(f)
 
 pipe = stable_diffusion_pipe(solver_order=1, model_id=model_id)
@@ -57,26 +61,23 @@ pipe.set_progress_bar_config(disable=True)
 
 cur_inv_order = 0
 var = 1.5
-work_dir = f"results/{exp_id}/{args.test_path}"
 combined_results = []
 import json
 
 
 eps = args.eps  
-os.makedirs(f"{work_dir}/inv_lat_{eps}", exist_ok=True)
-os.makedirs(f"{work_dir}/adv_img_{eps}", exist_ok=True)
-with open(f"{work_dir}/prompts.json", "r") as f:
+os.makedirs(f"{save_folder}/inv_lat_{eps}", exist_ok=True)
+os.makedirs(f"{save_folder}/adv_img_{eps}", exist_ok=True)
+with open(f"{save_folder}/prompts.json", "r") as f:
     prompts = json.load(f)
 
-work_id = (int(os.environ["CUDA_VISIBLE_DEVICES"]) + 233) % 8
+
 with torch.no_grad():
     for i in tqdm(range(test_num)):
-        if i % 8 != work_id:
-            continue
-        gen_img = Image.open(f"{work_dir}/gen_img/{i}.png")
-        gen_lat = torch.load(f"{work_dir}/gen_lat/{i}.pt")
-        x = torch.load(f"{work_dir}/gen_x/{i}.pt")
-        x_otp = torch.load(f"{work_dir}/gen_x_otp/{i}.pt")
+        gen_img = Image.open(f"{save_folder}/gen_img/{i}.png")
+        gen_lat = torch.load(f"{save_folder}/gen_lat/{i}.pt")
+        x = torch.load(f"{save_folder}/gen_x/{i}.pt")
+        x_otp = torch.load(f"{save_folder}/gen_x_otp/{i}.pt")
         pipe.unet.to(torch.bfloat16)
         pipe.vae.to(torch.bfloat16)
         reversed_latents = exact_inversion(
@@ -114,8 +115,8 @@ with torch.no_grad():
         from pathlib import Path
         from inversion import exact_inversion_with_grad
 
-        os.remove(f"{work_dir}/inv_lat_{eps}/{i}.txt") if Path(
-            f"{work_dir}/inv_lat_{eps}/{i}.txt"
+        os.remove(f"{save_folder}/inv_lat_{eps}/{i}.txt") if Path(
+            f"{save_folder}/inv_lat_{eps}/{i}.txt"
         ).exists() else None
         with torch.set_grad_enabled(True):
             for step in range(steps):
@@ -155,10 +156,10 @@ with torch.no_grad():
                     )
                     psnr_ = psnr(image, gen_img)
 
-                    image.save(f"{work_dir}/adv_img_{eps}/{i}_step_{step + 1}.png")
+                    image.save(f"{save_folder}/adv_img_{eps}/{i}_step_{step + 1}.png")
 
                     adv_image = Image.open(
-                        f"{work_dir}/adv_img_{eps}/{i}_step_{step + 1}.png"
+                        f"{save_folder}/adv_img_{eps}/{i}_step_{step + 1}.png"
                     )
                     pipe.unet.to(torch.bfloat16)
                     pipe.vae.to(torch.bfloat16)
@@ -205,7 +206,7 @@ with torch.no_grad():
                         .mean()
                         .item()
                     )
-                    with open(f"{work_dir}/inv_lat_{eps}/{i}.txt", "a") as f:
+                    with open(f"{save_folder}/inv_lat_{eps}/{i}.txt", "a") as f:
                         f.write(
                             f"Step {step + 1}/{steps}, Loss: {loss.item()}, Error: {target_error_rate:.4f},Actual Error: {actual_error_rate:.4f}, PSNR: {psnr_:.4f}, Detection: {detection_result_attacked}; Decoding: {decoding_result_attacked}; Detection_hard: {detection_result_attacked_hard}; Decoding_hard: {decoding_result_attacked_hard}\n"
                         )

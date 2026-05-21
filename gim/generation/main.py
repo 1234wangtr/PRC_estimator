@@ -23,7 +23,7 @@ parser.add_argument('--method', type=str, default='prc')
 parser.add_argument('--gen_model_id', type=str,
                     default='SD21')
 parser.add_argument('--inv_model_ids', type=str,
-                    default='SD21, SD2, SD15')
+                    default='SD21')
 parser.add_argument('--dataset_id', type=str,
                     default='Gustavosta/Stable-Diffusion-Prompts')  
 parser.add_argument('--inf_steps', type=int, default=50)
@@ -49,8 +49,8 @@ nowm = args.nowm
 fpr = args.fpr
 prc_t = args.prc_t
 exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
-
-os.makedirs(f"gim/data/results-{model_id}-keys-t{prc_t}", exist_ok=True)
+output_dir = f"gim/data/gen_data_{model_id}_t{prc_t}_{exp_id}"
+os.makedirs(output_dir, exist_ok=True)
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
                       errors:list,prc_codewords: list, reverse_codes: list, detections: list,
                       reverse_codes_v2: list, detections_v2: list,
@@ -91,8 +91,8 @@ def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.nd
         "detection_result_v1_5": detections_v15
     }
     
-    with open(f"gim/data/results-{model_id}-keys-t{prc_t}/"+filename, "w") as f:
-        json.dump(data, f, indent=2)
+    with open(f"{output_dir}/"+filename, "w") as f:
+        json.dump(data, f)
 
 
 
@@ -179,7 +179,7 @@ for i in range(args.start, args.end):
                 prc_codeword_save, prc_codeword, error,payload = Encode(
                     encoding_key) 
                 errors.append(error.tolist())
-                prc_codewords.append(prc_codeword_save.tolist())
+                prc_codewords.append((0.5-prc_codeword_save/2).int().tolist())
                 init_latents = prc_gaussians.sample(
                     prc_codeword_save).reshape(1, 4, 64, 64).to(device)
             else:

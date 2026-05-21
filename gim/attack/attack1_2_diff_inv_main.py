@@ -227,7 +227,7 @@ def safe_div(numerator, denominator):
 if __name__ == "__main__":
     num = 10 
     for i in range(1,num+1):
-        file_path = "../data/gim_data_10/"+ str(i).zfill(4) +".json"
+        file_path = "gim/data/gen_data_SD21_t3_prc_num_16_steps_50_fpr_1e-05_nowm_0"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"i={i}   norm={error_num_tot/i}  v15={error_num_tot_v15/i}   v2={error_num_tot_v2/i}")
         print(f"===dup===")

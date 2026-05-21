@@ -1,5 +1,6 @@
 
 import os
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 import argparse
 import torch
 import pickle
@@ -16,7 +17,7 @@ from inversion import stable_diffusion_pipe, generate
 parser = argparse.ArgumentParser('Args')
 parser.add_argument('--test_num', type=int, default=1)
 parser.add_argument('--method', type=str, default='prc') 
-parser.add_argument('--model_id', type=str, default='stabilityai/stable-diffusion-2-1-base')
+parser.add_argument('--model_id', type=str, default='/data/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base')
 parser.add_argument('--dataset_id', type=str, default='Gustavosta/Stable-Diffusion-Prompts') 
 parser.add_argument('--inf_steps', type=int, default=50)
 parser.add_argument('--nowm', type=int, default=0)

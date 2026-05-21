@@ -181,11 +181,11 @@ def print_json_keys(file_path,t):
         
 
     except FileNotFoundError:
-        print(f"错误：文件 {file_path} 未找到")
+        print(f"Error: file {file_path} not found")
     except json.JSONDecodeError:
-        print("错误：文件内容不是有效的JSON格式")
+        print("Error: file content is not valid JSON format")
     except Exception as e:
-        print(f"发生错误：{str(e)}")
+        print(f"Error occurred: {str(e)}")
 
 def safe_div(numerator, denominator):
     return numerator / denominator if denominator != 0 else float('NaN')
@@ -194,7 +194,7 @@ def safe_div(numerator, denominator):
 if __name__ == "__main__":
     num = 10
     for i in range(1,num+1):
-        file_path = "../data/gim_data_10/"+ str(i).zfill(4) +".json"
+        file_path = "gim/data/gen_data_SD21_t3/"+ str(i).zfill(4) +".json"
         print_json_keys(file_path,t=3)
         print(f"avg_err_num={error_num_tot/i}")
         print(f"===dup===")

@@ -17,9 +17,9 @@ This artifact contains the code for both thoretical analysis of our attacks, alo
 - Unzip the example data artifacts
    ```bash
    cd prc-estimator
-   unzip gim/data/gim_data_10.zip -d gim/data
-   unzip llm/data/llm_data_10.zip -d llm/data
-   unzip llm/data/gen_result.zip -d llm/data
+   unzip gim/data/gen_data_SD21_t3.zip -d gim/data/gen_data_SD21_t3
+   unzip llm/data/gen_result_Deepseek_t_3_temp_1.8.zip -d llm/data/gen_result_Deepseek_t_3_temp_1.8
+   unzip llm/data/gen_result_Deepseek_t_3_temp_all.zip -d llm/data
    ```
 - Create the conda environment for llm and gim.
    ```bash
@@ -97,6 +97,7 @@ The LLM-generated watermarked and non-watermarked content under different temper
 
 To reproduce Figure 5, you can run the following command:
 ```bash
+conda activate prc-estimator-llm
 python llm/generation/plot_entropy.py
 ```
 This will generate the following figure:
@@ -116,22 +117,25 @@ To reproduce Table 9, you can manually check the following JSON files:
 To generate the watermarked images, you can run the following scripts:
 ```bash
 conda activate prc-estimator-gim
-python gim/generation/main.py
+python gim/generation/main.py --gen_model_id SD21 --inv_model_ids SD15,SD2,SD21 --prc_t 3 --start 0 --end 128
+python gim/generation/main.py --gen_model_id SD21 --inv_model_ids SD15,SD2,SD21 --prc_t 4 --start 0 --end 128
 ```
 
-This will generate watermarked images and the associated PRC data in the `gim/data/results-<model_id>-keys-t<prc_t>` directory.
+This will generate watermarked images and the associated PRC data in the `gim/data/gen_data*` directory.
 
 #### Concrete Attacks (Section 6.3, Table 4, Table 8)
 The implementations of the Attack I and Attack II are provided in `gim/attack`.
 To run the attacks and reproduce Table 4, you can run the following scripts:
 ```bash
-conda activate prc-estimator-gim && python gim/attack/attack1_2_main.py
+conda activate prc-estimator-gim
+python gim/attack/attack1_2_main.py
 ```
 This will output the corresponding data for Table 4 in the terminal.
 
 To reproduce Table 8, you can run the following scripts:
 ```bash
-conda activate prc-estimator-gim && python gim/attack/attack1_2_diff_inv_main.py
+conda activate prc-estimator-gim
+python gim/attack/attack1_2_diff_inv_main.py
 ```
 This will output the corresponding data for Table 8 in the terminal.
 

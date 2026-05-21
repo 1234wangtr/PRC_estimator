@@ -3,7 +3,7 @@ import re
 import pandas as pd
 res = []
 for i in range(100):
-    file = f"results/prc_num_100_steps_50_fpr_1e-05_nowm_0/original_images/inv_lat_0.0941/{i}.txt"
+    file = f"gim/data/for_attack3_prc_num_1_steps_50_fpr_1e-05_nowm_0/inv_lat_0.0941/{i}.txt"
     try:
         with open(file, "r") as f:
             lines = f.readlines()
@@ -88,5 +88,5 @@ df_agg = df_false.groupby("image").agg({"step": "first", "error": "first", "actu
 succ = df_agg["step"] != 999
 df_agg_success = df_agg[succ]
 print(succ.mean())
-df_agg_success[["step", "error", "actual_error", "psnr"]].describe()
+print(df_agg_success[["step", "error", "actual_error", "psnr"]].describe())
 
