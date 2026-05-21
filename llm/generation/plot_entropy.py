@@ -1,4 +1,4 @@
-# %%
+
 from pathlib import Path
 import json
 
@@ -41,12 +41,12 @@ def ext(res_path):
             
     return _det,_correct_rate,_temperature,data_entries
 
-_,_,_, data_entries = ext("../llm_data/gen_result")
+_,_,_, data_entries = ext("llm/data/gen_result")
 
 import pandas as pd
 df = pd.DataFrame(data_entries)
 
-# %%
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_theme(style="whitegrid", font=["Times New Roman", "Droid Sans Fallback"],font_scale=1.8)
@@ -184,5 +184,5 @@ axes.axes[0, 1].annotate(
     bbox=dict(boxstyle="round,pad=0.3", edgecolor='black', facecolor='white', alpha=0.8),
 )
 print(df["temperature"].value_counts())
-plt.savefig('avg_entropy_vs_correct_rate.pdf', bbox_inches='tight')
-# %%
+plt.savefig('llm/data/avg_entropy_vs_correct_rate.pdf', bbox_inches='tight')
+

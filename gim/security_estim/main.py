@@ -1,4 +1,4 @@
-# %%
+
 import math
 
 import numpy as np
@@ -131,7 +131,7 @@ def main2():
 
     plt.xticks(range(int(min(t_values)), int(max(t_values)) + 1), fontsize=20)
     plt.yticks(fontsize=20)
-    plt.savefig('gim_watermark_secrity_estim.pdf', bbox_inches='tight')
+    plt.savefig('gim/data/gim_watermark_secrity_estim.pdf', bbox_inches='tight')
     plt.show()
     import pandas as pd
     df = pd.DataFrame({
@@ -149,17 +149,17 @@ def main2():
     df["eps"] = df["eps"].round(3)
     df["rho"] = df["rho"].round(3)
     df["noise_rate"] = df["noise_rate"].round(3)
-    # round T_* to 2 decimal places
+    
     df['T_partial'] = df['T_partial'].round(2)
     df['P_weak'] = df['P_weak'].round(2)
     df['T_dis'] = df['T_dis'].round(2)
     df['T_overlay'] = df['T_overlay'].round(2)
     df['T_prime_overlay'] = df['T_prime_overlay'].round(2)
     df['lambda'] = df['lambda'].round(0)
-    df.to_csv('gim_watermark_secrity_estim.csv', index=False)
+    df.to_csv('gim/data/gim_watermark_secrity_estim.csv', index=False)
 
 if __name__ == '__main__':
     main2()
-# %%
 
-# %%
+
+

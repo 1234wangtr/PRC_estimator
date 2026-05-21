@@ -42,9 +42,9 @@ def generate_constrained_vectors(n, weight, x=-1, position='front'):
     half = n // 2
 
     if position == 'front':
-        valid_range = range(half)  # 1 must in [0, n/2)
+        valid_range = range(half)  
     elif position == 'back':
-        valid_range = range(half, n)  # 1 must in [n/2, n)
+        valid_range = range(half, n)  
     else:
         raise ValueError("position has to be 'front' or 'back'")
 
@@ -57,23 +57,22 @@ def generate_constrained_vectors(n, weight, x=-1, position='front'):
 
 
 def generate_random_vectors(n, weight, x=-1):
-    # all_possible = itertools.combinations(range(n), weight)
+    
     sampled_indices = random.sample(list(itertools.combinations(range(n), weight)), x)
     return sampled_indices
 
 def part_key_recovery(n,k,t,G,secret_key_dict={}):
-    """Meet-in-the-middle algorithm for finding vectors in F₂^n"""
     half_t = (t) // 2
     remaining_t = t - half_t
 
 
-    # Generate L1 and L2 sets (only positions of 1s)
+    
     if t==3:
         num = calc_C(n,half_t)
         L1 = list(generate_random_vectors(n, half_t, num))
         L2 = list(generate_random_vectors(n, remaining_t, num))
-        # L1 = list(generate_constrained_vectors(n, half_t, num, 'front'))
-        # L2 = list(generate_constrained_vectors(n, remaining_t, num, 'back'))
+        
+        
     elif t==4:
         num = 5000000
         L1 = list(generate_constrained_vectors(n, half_t, num, 'front'))
@@ -81,46 +80,46 @@ def part_key_recovery(n,k,t,G,secret_key_dict={}):
 
 
 
-    # Precompute syndromes for L1
+    
     L1_full = {}
 
     for vec in L1:
-        # Compute syndrome: G * vec (in F₂)
+        
         syndrome = [0] * k
         for pos in vec:
             for i in range(k):
                 syndrome[i] ^= G[i][pos]
-        # Convert syndrome to a tuple for hashing
+        
         syndrome_tuple = tuple(syndrome)
         if syndrome_tuple not in L1_full:
             L1_full[syndrome_tuple] = []
         L1_full[syndrome_tuple].append(vec)
 
-    # print(L1_full)
-    # Search for matches in L2
+    
+    
     solutions = {}
 
     for vec in L2:
-        # Compute target syndrome for this vector
+        
         syndrome = [0] * k
         for pos in vec:
             for i in range(k):
                 syndrome[i] ^= G[i][pos]
-        # We want vectors in L1 that have the same syndrome
+        
         target_syndrome = tuple(syndrome)
         if target_syndrome in L1_full:
             for l1_vec in L1_full[target_syndrome]:
-                # Combine the vectors (positions of 1s)
+                
                 combined = sorted(set(l1_vec) | set(vec))
                 if len(combined) >= 3:
                     print(f"found l1_vec={l1_vec} vec={vec} combined={combined}")
                 else:
                     continue
                 tmp = tuple(combined)
-                # if tmp in secret_key_dict:
-                #     print(f"in tmp={tmp}")
-                # else:
-                #     print(f"out")
+                
+                
+                
+                
 
                 solutions[tmp] = 1
     print(f"found solu num={len(solutions)}")

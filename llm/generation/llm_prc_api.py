@@ -34,10 +34,10 @@ def KeyGen(n, t=3, g=None, r=None, noise_rate=None):
         generator_matrix[n - r + row] = generator_matrix[chosen_indices[:-1]].sum(axis=0)
     parity_check_matrix = csr_matrix((data, (row_indices, col_indices)))
 
-    # Sample one-time pad and test bits
+    
     one_time_pad = GF.Random(n)
     
-    # Permute bits
+    
     permutation = np.random.permutation(n)
     generator_matrix = generator_matrix[permutation]
     one_time_pad = one_time_pad[permutation]

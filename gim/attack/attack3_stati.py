@@ -1,4 +1,4 @@
-# %%
+
 import re
 import pandas as pd
 res = []
@@ -14,7 +14,7 @@ for i in range(100):
         '''
         Step 1/100, Loss: 3.3996517658233643, Error: 0.9102,Actual Error: 0.9141, PSNR: 44.6145, Detection: True; Decoding: True; Detection_hard: True; Decoding_hard: True
         '''
-        # parse the line using regex
+        
         pattern = r"Step (\d+)/100, Loss: ([\d\.]+), Error: ([\d\.]+),Actual Error: ([\d\.]+), PSNR: ([\d\.]+), Detection: (True|False); Decoding: (True|False); Detection_hard: (True|False); Decoding_hard: (True|False)"
         match = re.match(pattern, line)
         if match:
@@ -89,4 +89,4 @@ succ = df_agg["step"] != 999
 df_agg_success = df_agg[succ]
 print(succ.mean())
 df_agg_success[["step", "error", "actual_error", "psnr"]].describe()
-# %%
+

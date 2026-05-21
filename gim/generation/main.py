@@ -1,3 +1,4 @@
+
 import os
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
@@ -24,7 +25,7 @@ parser.add_argument('--gen_model_id', type=str,
 parser.add_argument('--inv_model_ids', type=str,
                     default='SD21, SD2, SD15')
 parser.add_argument('--dataset_id', type=str,
-                    default='Gustavosta/Stable-Diffusion-Prompts')  # coco
+                    default='Gustavosta/Stable-Diffusion-Prompts')  
 parser.add_argument('--inf_steps', type=int, default=50)
 parser.add_argument('--nowm', type=int, default=0)
 parser.add_argument('--fpr', type=float, default=0.00001)
@@ -38,7 +39,7 @@ print(args)
 hf_cache_dir = ''
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
-n = 4 * 64 * 64  # the length of a PRC codeword
+n = 4 * 64 * 64  
 method = args.method
 test_num = args.test_num
 model_id = args.gen_model_id
@@ -49,7 +50,7 @@ fpr = args.fpr
 prc_t = args.prc_t
 exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
 
-os.makedirs(f"results-{model_id}/keys-t{prc_t}", exist_ok=True)
+os.makedirs(f"gim/data/results-{model_id}-keys-t{prc_t}", exist_ok=True)
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
                       errors:list,prc_codewords: list, reverse_codes: list, detections: list,
                       reverse_codes_v2: list, detections_v2: list,
@@ -62,10 +63,10 @@ def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.nd
         row_end = secret_key.indptr[i + 1]
         indices = secret_key.indices[row_start:row_end]
         sorted_indices = sorted(indices.tolist())
-        # if len(sorted_indices) >= 3:
-        #     group = [sorted_indices[2], sorted_indices[0], sorted_indices[1]]
-        # else:
-        #     group = sorted_indices + [0] * (3 - len(sorted_indices))
+        
+        
+        
+        
         secret_key_list.append(sorted_indices)
     errors_save = [np.where(error==1)[0] for error in errors][0].tolist()
     otp_list = otp.tolist()
@@ -90,7 +91,7 @@ def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.nd
         "detection_result_v1_5": detections_v15
     }
     
-    with open(f"results-{model_id}/keys-t{prc_t}/"+filename, "w") as f:
+    with open(f"gim/data/results-{model_id}-keys-t{prc_t}/"+filename, "w") as f:
         json.dump(data, f, indent=2)
 
 
@@ -183,15 +184,15 @@ for i in range(args.start, args.end):
                     prc_codeword_save).reshape(1, 4, 64, 64).to(device)
             else:
                 raise NotImplementedError
-        #current_prompt = "the day that aliens met us, digital art, epic, lighting, color harmony, volumetric lighting, matte painting, chromatic aberration, shallow depth of field, epic composition, trending on artstation"
-        # print("Tensor dtype:" , init_latents.dtype, "Model dtype:", pipe_gen.unet.dtype,)
+        
+        
         orig_image, _, _ = generate(prompt=current_prompt,
                                     init_latents=init_latents,
                                     num_inference_steps=args.inf_steps,
                                     solver_order=1,
                                     pipe=pipe_gen
                                     )
-        # orig_image.save(f'paperfig/{i}_{j}.png')
+        
         if "SD21" in inv_model_ids:
             reversed_latents = exact_inversion(
                 orig_image,

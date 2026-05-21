@@ -1,7 +1,3 @@
-# %%
-"""
-For PRC watermarking Only, will add Tree-Ring and Gaussian Shading watermarking later
-"""
 
 import os
 
@@ -17,11 +13,11 @@ from inversion import stable_diffusion_pipe, exact_inversion, generate
 
 parser = argparse.ArgumentParser("Args")
 parser.add_argument("--test_num", type=int, default=1)
-parser.add_argument("--method", type=str, default="prc")  # gs, tr, prc
+parser.add_argument("--method", type=str, default="prc")  
 parser.add_argument(
     "--model_id",
     type=str,
-    default="/data3/rdl/huggingface-mirror/dataroot/models/stabilityai/stable-diffusion-2-1-base",
+    default="stabilityai/stable-diffusion-2-1-base",
 )
 parser.add_argument(
     "--dataset_id", type=str, default="Gustavosta/Stable-Diffusion-Prompts"
@@ -41,9 +37,9 @@ try:
 except ValueError:
     args.fpr = 0.00001
 print(args)
-# %%
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
-n = 4 * 64 * 64  # the length of a PRC codeword
+n = 4 * 64 * 64  
 method = args.method
 test_num = args.test_num
 model_id = args.model_id
@@ -58,15 +54,15 @@ with open(f"keys/{exp_id}.pkl", "rb") as f:
 
 pipe = stable_diffusion_pipe(solver_order=1, model_id=model_id)
 pipe.set_progress_bar_config(disable=True)
-# %%
+
 cur_inv_order = 0
 var = 1.5
 work_dir = f"results/{exp_id}/{args.test_path}"
 combined_results = []
 import json
 
-# eps = 0.0627 # 8/255 * 2
-eps = args.eps  # 12/255 * 2
+
+eps = args.eps  
 os.makedirs(f"{work_dir}/inv_lat_{eps}", exist_ok=True)
 os.makedirs(f"{work_dir}/adv_img_{eps}", exist_ok=True)
 with open(f"{work_dir}/prompts.json", "r") as f:
@@ -104,7 +100,7 @@ with torch.no_grad():
         image_tensor_original = (
             transforms.ToTensor()(gen_img).unsqueeze(0).bfloat16().to(device)
         )
-        image_tensor_original = image_tensor_original * 2 - 1  # scale to [-1, 1]
+        image_tensor_original = image_tensor_original * 2 - 1  
         image_tensor = image_tensor_original.clone().detach()
         steps = 100
         lr = 0.01
@@ -135,21 +131,21 @@ with torch.no_grad():
                 loss = tanh_approximation_loss(new_latent, target)
                 loss.backward()
                 with torch.no_grad():
-                    # use PGD
-                    # update image_tensor
+                    
+                    
                     grad_sign = image_tensor.grad.sign()
                     image_tensor.grad.zero_()
-                    # update image_tensor with sign of gradient
+                    
                     image_tensor -= lr * grad_sign
 
                     eta = torch.clamp(image_tensor - image_tensor_original, -eps, eps)
                     image_tensor = torch.clamp(
                         image_tensor_original + eta, -1, 1
-                    )  # keep in [-1, 1]
-                    # get the sign of new_latent
+                    )  
+                    
                     new_latent_sign = new_latent.sign()
 
-                    # check the error rate
+                    
                     target_error_rate = (
                         (new_latent_sign != target).bfloat16().mean().item()
                     )
@@ -222,4 +218,4 @@ with torch.no_grad():
                         break
 
 
-# %%
+

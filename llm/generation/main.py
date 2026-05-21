@@ -1,4 +1,4 @@
-# %%
+
 import os
 
 import time
@@ -24,9 +24,9 @@ model = AutoModelForCausalLM.from_pretrained(
     model_path, device_map="auto", torch_dtype=torch.bfloat16)
 tokenizer = AutoTokenizer.from_pretrained(model_path, device_map="auto")
 model.eval()
-
-os.makedirs("result-t3-256", exist_ok=True)
-filename = f"result-t3-256/{int(time.time_ns())}.json"
+t = 3
+os.makedirs(f"data/llm/gen_result_t{t}", exist_ok=True)
+filename = f"data/llm/gen_result_t{t}/{int(time.time_ns())}.json"
 
 
 def sample_token(x, probs):
@@ -83,7 +83,7 @@ def get_logits_processor(generation_config: GenerationConfig):
     return processors
 
 
-# %%
+
 head_token_length = 0
 max_new_tokens = 1024
 generation_config = GenerationConfig(
@@ -151,7 +151,7 @@ chats = [
 
 token_count_log2 = math.ceil(math.log2(model.config.vocab_size))
 n = token_count_log2*max_new_tokens
-t = 3
+
 enc, dec = KeyGen(n, t)
 (generator_matrix, parity_check_matrix, one_time_pad, noise_rate, g, t) = dec
 
@@ -256,9 +256,6 @@ for i, chat in enumerate(chats):
                 sampled_token = sample_token(x, probs)
                 tok = torch.cat(
                     [tok, torch.tensor([[sampled_token]]).to(tok.device)], dim=1)
-                if sampled_token == tokenizer.eos_token_id:
-                    eos_end = True
-                    break
 
         if eos_end:
             print("eos occurred. gen len:",

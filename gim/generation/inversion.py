@@ -1,3 +1,27 @@
+'''
+Adapted from https://github.com/XuandongZhao/PRC-Watermark, modified by PRC-estimator authors.
+MIT License
+
+Copyright (c) 2024 Xuandong Zhao, modified by PRC-estimator authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
 import torch
 from diffusers import DPMSolverMultistepScheduler
 
@@ -10,7 +34,7 @@ def stable_diffusion_pipe(
         model_id='stabilityai/stable-diffusion-2-1-base',
         cache_dir='',
 ):
-    # load stable diffusion pipeline
+    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     scheduler = DPMSolverMultistepScheduler(
         beta_end=0.012,
@@ -47,7 +71,7 @@ def generate(
         pipe=None,
         init_latents=None,
 ):
-    # load stable diffusion pipeline
+    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     if pipe is None:
         scheduler = DPMSolverMultistepScheduler(
@@ -67,19 +91,19 @@ def generate(
         )
     pipe = pipe.to(device)
 
-    # load dataset and prompt
+    
     if prompt is None:
         dataset, prompt_key = get_dataset(datasets)
         prompt = dataset[image_num][prompt_key]
 
-    # generate init latent
+    
     seed = gen_seed + image_num
     set_random_seed(seed)
 
     if init_latents is None:
         init_latents = pipe.get_random_latents()
 
-    # generate image
+    
     output, _ = pipe(
         prompt,
         guidance_scale=guidance_scale,
@@ -106,7 +130,7 @@ def exact_inversion(
         model_id='stabilityai/stable-diffusion-2-1-base',
         pipe=None,
 ):
-    # load stable diffusion pipeline
+    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     if pipe is None:
         scheduler = DPMSolverMultistepScheduler(
@@ -130,17 +154,17 @@ def exact_inversion(
     )
     text_embeddings = torch.cat([text_embeddings_tuple[1], text_embeddings_tuple[0]])
 
-    # image to latent
+    
     image = transform_img(image).unsqueeze(0) if image_tensor is None else image_tensor
     image =  image.to(torch.bfloat16).to(device)
     if decoder_inv:
         image_latents = pipe.decoder_inv(image)
     else:
         image_latents = pipe.get_image_latents(image, sample=False)
-    # forward diffusion : image to noise
+    
     reversed_latents = pipe.forward_diffusion(
         latents=image_latents,
-        #text_embeds=text_embeddings,
+        
         text_embeddings=text_embeddings,
         guidance_scale=guidance_scale,
         num_inference_steps=test_num_inference_steps,
@@ -162,7 +186,7 @@ def exact_inversion_with_grad(
         model_id='stabilityai/stable-diffusion-2-1-base',
         pipe=None,
 ):
-    # load stable diffusion pipeline
+    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     if pipe is None:
         scheduler = DPMSolverMultistepScheduler(
@@ -186,17 +210,17 @@ def exact_inversion_with_grad(
     )
     text_embeddings = torch.cat([text_embeddings_tuple[1], text_embeddings_tuple[0]])
 
-    # image to latent
+    
     image = transform_img(image).unsqueeze(0) if image_tensor is None else image_tensor
     image =  image.to(text_embeddings.dtype).to(device)
     if decoder_inv:
         image_latents = pipe.decoder_inv(image)
     else:
         image_latents = pipe.get_image_latents_with_grad(image, sample=False)
-    # forward diffusion : image to noise
+    
     reversed_latents = pipe.forward_diffusion_with_grad(
         latents=image_latents,
-        #text_embeds=text_embeddings,
+        
         text_embeddings=text_embeddings,
         guidance_scale=guidance_scale,
         num_inference_steps=test_num_inference_steps,

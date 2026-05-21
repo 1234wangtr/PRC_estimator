@@ -1,4 +1,4 @@
-# %%
+
 import math
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -54,7 +54,7 @@ def get_g_dup_prob(n,r,t):
 def main():
 
     logn = 17
-    #r = int(2**logr)
+    
     n = int(2**logn)
     plt.figure(figsize=(5,3.5))
 
@@ -83,7 +83,7 @@ def main():
         print(f"msg2={msg2}")
 
 
-        # recover one
+        
         if t%2==0:
             pr = calc_C(n//2,t//2)*calc_C(n//2,t//2) / calc_C(n,t)
             num = int(r*pr)
@@ -96,7 +96,7 @@ def main():
             distinguish = math.log2(g * res)
 
 
-        # G dup
+        
         dup = get_g_dup_prob(n,r,t)
         try:
             dup = math.log2(dup)
@@ -131,7 +131,7 @@ def main():
     plt.xticks(range(int(min(t_values)), int(max(t_values)) + 1), fontsize=20)
     plt.yticks(fontsize=20)
 
-    plt.savefig('llm_watermark_secrity_estim.pdf', bbox_inches='tight')
+    plt.savefig('llm/data/llm_watermark_secrity_estim.pdf', bbox_inches='tight')
     
     plt.show()
 
@@ -147,18 +147,18 @@ def main():
     })
     df["eps"] = df["eps"].round(3)
     df["rho"] = df["rho"].round(3)
-    # round T_* to 2 decimal places
+    
     df['T_partial'] = df['T_partial'].round(2)
     df['P_weak'] = df['P_weak'].round(2)
     df['T_dis'] = df['T_dis'].round(2)
     df['T_overlay'] = df['T_overlay'].round(2)
     df['lambda'] = df['lambda'].round(0)
-    df.to_csv('llm_watermark_secrity_estim.csv', index=False)
+    df.to_csv('llm/data/llm_watermark_secrity_estim.csv', index=False)
 
 if __name__ == '__main__':
     main()
 
 
-# %%
 
-# %%
+
+
