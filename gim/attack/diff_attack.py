@@ -49,7 +49,7 @@ def generate_constrained_vectors(n, weight, x=-1, position='front'):
     elif position == 'back':
         valid_range = range(half, n)  
     else:
-        raise ValueError("position 必须是 'front' 或 'back'")
+        raise ValueError("position must be 'front' or 'back'")
 
     
     all_possible = list(itertools.combinations(valid_range, weight))
