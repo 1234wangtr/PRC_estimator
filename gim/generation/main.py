@@ -47,7 +47,7 @@ nowm = args.nowm
 fpr = args.fpr
 prc_t = args.prc_t
 exp_id = f'{method}_num_{test_num}_steps_{args.inf_steps}_fpr_{fpr}_nowm_{nowm}'
-output_dir = f"gim/data/gen_data_{model_id}_t{prc_t}_{exp_id}"
+output_dir = f"gim/data/{model_id}_t{prc_t}"
 os.makedirs(output_dir, exist_ok=True)
 def save_keys_to_json(public_key: np.ndarray, secret_key: csr_matrix, otp: np.ndarray,
                       errors:list,prc_codewords: list, reverse_codes: list, detections: list,
@@ -104,13 +104,13 @@ else:
 prompts = random.sample(all_prompts, test_num)
 if "SD21" in inv_model_ids or model_id == "SD21":
     pipe_v2_1 = stable_diffusion_pipe(
-        solver_order=1, model_id="stabilityai/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
+        solver_order=1, model_id=".models/Manojb/stable-diffusion-2-1-base/", cache_dir=hf_cache_dir)
     pipe_v2_1.set_progress_bar_config(disable=True)
 else:
     pipe_v2_1 = None
 if "SD15" in inv_model_ids or model_id == "SD15":
     pipe_v1_5 = stable_diffusion_pipe(solver_order=1,
-                                         model_id="sd-legacy/stable-diffusion-v1-5/",
+                                         model_id=".models/stable-diffusion-v1-5/stable-diffusion-v1-5/",
                                       cache_dir=hf_cache_dir)
     pipe_v1_5.set_progress_bar_config(disable=True)
 else:
@@ -118,7 +118,7 @@ else:
 
 if "SD2" in inv_model_ids or model_id == "SD2":
     pipe_v2 = stable_diffusion_pipe(solver_order=1,
-                                    model_id="Manojb/stable-diffusion-2-base/",
+                                    model_id=".models/Manojb/stable-diffusion-2-base/",
                                     cache_dir=hf_cache_dir)
     pipe_v2.set_progress_bar_config(disable=True)
 else:

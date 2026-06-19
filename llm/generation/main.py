@@ -18,19 +18,19 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper
 )
 import argparse
-# add arg: t, gen_start, gen_end
+# add arg: t, start, end
 parser = argparse.ArgumentParser()
 parser.add_argument("--prc_t", type=int, default=3)
-parser.add_argument("--gen_start", type=int, default=0)
-parser.add_argument("--gen_end", type=int, default=128)
+parser.add_argument("--start", type=int, default=0)
+parser.add_argument("--end", type=int, default=128)
 parser.add_argument("--temperature", type=float, default=1.8)
 parser.add_argument("--model_name", type=str, default="Deepseek", choices=["Deepseek", "Qwen"])
 args = parser.parse_args()
 model_name = args.model_name
 if model_name == "Deepseek":
-    model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
+    model_path = ".models/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/"
 elif model_name == "Qwen":
-    model_path = "Qwen/Qwen3-8B/"
+    model_path = ".models/Qwen/Qwen3-8B/"
 else:
     raise ValueError("Invalid model_id")
 t = int(args.prc_t)
@@ -40,7 +40,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_path, device_map="auto", torch_dtype=torch.bfloat16)
 tokenizer = AutoTokenizer.from_pretrained(model_path, device_map="auto")
 model.eval()
-output_dir = f"llm/data/gen_result_model_{model_name}_t_{t}_temperature_{temperature}"
+output_dir = f"llm/data/{model_name}_t_{t}_temp_{temperature}"
 os.makedirs(output_dir, exist_ok=True)
 
 
@@ -168,9 +168,9 @@ chats = [
 token_count_log2 = math.ceil(math.log2(model.config.vocab_size))
 n = token_count_log2*max_new_tokens
 
-gen_start = int(args.gen_start)
-gen_end = int(args.gen_end)
-for exp_i in range(gen_start, gen_end):
+start = int(args.start)
+end = int(args.end)
+for exp_i in range(start, end):
     enc, dec = KeyGen(n, t)
     filename = f"{output_dir}/{exp_i}.json"
     (generator_matrix, parity_check_matrix, one_time_pad, noise_rate, g, t) = dec

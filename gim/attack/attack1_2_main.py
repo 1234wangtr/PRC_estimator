@@ -6,7 +6,7 @@ from waterimg_class import *
 
 from diff_attack import *
 
-all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1 = 0,0,0,0
+all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1 = 0, 0, 0, 0
 all_msg_tot3, all_msg_succ3, all_inv_tot3, all_inv_succ3 = 0, 0, 0, 0
 
 all_msg_tot2, all_msg_same2, all_inv_tot2, all_inv_same2 = 0, 0, 0, 0
@@ -27,13 +27,18 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-def print_json_keys(file_path,t):
+
+def print_json_keys(file_path, t):
     global all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1
     global all_msg_tot3, all_msg_succ3, all_inv_tot3, all_inv_succ3
     global all_msg_tot2, all_msg_same2, all_inv_tot2, all_inv_same2
     global all_msg_tot4, all_msg_succ4, all_inv_tot4, all_inv_succ4
     global dup_num_tot, error_num_tot
-    global all_key_plain_tot, all_key_plain_detect, all_dup_plain_tot, all_dup_plain_detect
+    global \
+        all_key_plain_tot, \
+        all_key_plain_detect, \
+        all_dup_plain_tot, \
+        all_dup_plain_detect
     global all_key_plain_sum, all_key_plain_same, all_dup_plain_sum, all_dup_plain_same
 
     prc_codeword_list = []
@@ -45,93 +50,87 @@ def print_json_keys(file_path,t):
     otp = []
 
     check_dup = {}
-    dup1, dup2 = -1,-1
+    dup1, dup2 = -1, -1
 
     wim = None
 
-
-
-
     try:
-        
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-
-
-        
-        
-        
-        
-
-        
-        if 'secret_key' in data:
-            
-            
-            
-            
-            
-            secret_key = data['secret_key']
+        if "secret_key" in data:
+            secret_key = data["secret_key"]
             for i in range(len(secret_key)):
                 for j in range(len(secret_key[0])):
                     secret_key[i][j] = int(secret_key[i][j])
             for ele in secret_key:
                 if tuple(sorted(ele)) not in secret_key_dict:
                     secret_key_dict[tuple(sorted(ele))] = 1
-            
 
-        
-        if 'public_key' in data:
-            public_key = data['public_key']
+        if "public_key" in data:
+            public_key = data["public_key"]
             n, k, t = len(public_key), len(public_key[0]), t
             public_key_trans = [[0 for _ in range(n)] for _ in range(k)]
-            
+
             for i in range(len(public_key)):
                 for j in range(len(public_key[i])):
                     public_key[i][j] = int(public_key[i][j])
-                    public_key_trans[j][i] = (public_key[i][j])
+                    public_key_trans[j][i] = public_key[i][j]
             check_dup = find_duplicate_rows(public_key)
 
+        if "one_time_pad" in data:
+            otp = data["one_time_pad"]
 
-        
-        if 'one_time_pad' in data:
-            otp = data['one_time_pad']
-
-
-
-        if 'prc_codeword_save' in data:
-            
-            
-            prc_codeword_list = data['prc_codeword_save']
+        if "prc_codeword_save" in data:
+            prc_codeword_list = data["prc_codeword_save"]
             for i in range(len(prc_codeword_list)):
                 for j in range(len(prc_codeword_list[i])):
                     prc_codeword_list[i][j] = int(prc_codeword_list[i][j])
 
-        if 'PRC_reverse_code' in data:
-            
-            
-            
-            inv_codeword_list = data['PRC_reverse_code']
+        if "PRC_reverse_code" in data:
+            inv_codeword_list = data["PRC_reverse_code"]
             for i in range(len(inv_codeword_list)):
                 for j in range(len(prc_codeword_list[i])):
                     inv_codeword_list[i][j] = int(inv_codeword_list[i][j])
 
-
-        wim = WaterImg(t=t,public_key=public_key,otp=otp,
-                       origin_msg_list=prc_codeword_list,inv_msg_list=inv_codeword_list)
+        wim = WaterImg(
+            t=t,
+            public_key=public_key,
+            otp=otp,
+            origin_msg_list=prc_codeword_list,
+            inv_msg_list=inv_codeword_list,
+        )
         avg_err_num = wim.avg_err_num()
         error_num_tot += avg_err_num
         print(f"avg_err_num={avg_err_num}")
 
-        msg_tot1,msg_same1,inv_tot1,inv_same1,dup_plain_tot,dup_plain_same,dup_num = wim.dup_detect()
-        msg_tot2,msg_same2,inv_tot2,inv_same2,key_plain_tot,key_plain_same = wim.part_key_recover()
+        (
+            msg_tot1,
+            msg_same1,
+            inv_tot1,
+            inv_same1,
+            dup_plain_tot,
+            dup_plain_same,
+            dup_num,
+        ) = wim.dup_detect()
+        msg_tot2, msg_same2, inv_tot2, inv_same2, key_plain_tot, key_plain_same = (
+            wim.part_key_recover()
+        )
 
         dup_num_tot += dup_num
-        all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1 = \
-            all_msg_tot1+msg_tot1, all_msg_same1+msg_same1, all_inv_tot1+inv_tot1, all_inv_same1+inv_same1
+        all_msg_tot1, all_msg_same1, all_inv_tot1, all_inv_same1 = (
+            all_msg_tot1 + msg_tot1,
+            all_msg_same1 + msg_same1,
+            all_inv_tot1 + inv_tot1,
+            all_inv_same1 + inv_same1,
+        )
 
-        all_msg_tot2, all_msg_same2, all_inv_tot2, all_inv_same2 = \
-            all_msg_tot2 + msg_tot2, all_msg_same2 + msg_same2, all_inv_tot2 + inv_tot2, all_inv_same2 + inv_same2
+        all_msg_tot2, all_msg_same2, all_inv_tot2, all_inv_same2 = (
+            all_msg_tot2 + msg_tot2,
+            all_msg_same2 + msg_same2,
+            all_inv_tot2 + inv_tot2,
+            all_inv_same2 + inv_same2,
+        )
 
         all_msg_tot3 += 1
         if msg_tot1 == 0:
@@ -171,15 +170,6 @@ def print_json_keys(file_path,t):
             if dup_plain_same / dup_plain_tot >= threshold:
                 all_dup_plain_detect += 1
 
-
-        
-        
-        
-        
-        
-        
-        
-
     except FileNotFoundError:
         print(f"Error: file {file_path} not found")
     except json.JSONDecodeError:
@@ -187,40 +177,54 @@ def print_json_keys(file_path,t):
     except Exception as e:
         print(f"Error occurred: {str(e)}")
 
+
 def safe_div(numerator, denominator):
-    return numerator / denominator if denominator != 0 else float('NaN')
+    return numerator / denominator if denominator != 0 else float("NaN")
 
 
-if __name__ == "__main__":
-    num = 10
-    for i in range(1,num+1):
-        file_path = "gim/data/gen_data_SD21_t3/"+ str(i).zfill(4) +".json"
-        print_json_keys(file_path,t=3)
-        print(f"avg_err_num={error_num_tot/i}")
-        print(f"===dup===")
-        print(f"dup_num_tot={dup_num_tot}")
-        print(f"All:    {all_msg_tot1}, {all_msg_same1}, {all_inv_tot1}, {all_inv_same1}")
-        print(f"Detect: {all_msg_tot3}, {all_msg_succ3}, {all_inv_tot3}, {all_inv_succ3}")
-        print(f"Plain All: {all_dup_plain_sum}, {all_dup_plain_same}")
-        print(f"Plain Detect:  {all_dup_plain_tot}, {all_dup_plain_detect}")
-        print(f"===key===")
-        print(f"All:    {all_msg_tot2}, {all_msg_same2}, {all_inv_tot2}, {all_inv_same2}")
-        print(f"Detect: {all_msg_tot4}, {all_msg_succ4}, {all_inv_tot4}, {all_inv_succ4}")
-        print(f"Plain All: {all_key_plain_sum}, {all_key_plain_same}")
-        print(f"Plain Detect:  {all_key_plain_tot}, {all_key_plain_detect}")
+from pathlib import Path
+from tqdm import tqdm
+import sys
+import os
+import argparse
 
-        print("===Summary===")
+parser = argparse.ArgumentParser()
+parser.add_argument("work_dir", type=str, help="Directory containing JSON files")
+parser.add_argument("--verbose", action="store_true", help="Print detailed output")
 
-        
-        TPR_0 = safe_div(all_msg_succ4, all_msg_tot4)
-        TPR_1 = safe_div(all_inv_succ4, all_inv_tot4)
-        FPR = safe_div(all_key_plain_detect, all_key_plain_tot)
+args = parser.parse_args()
+work_dir = args.work_dir
+if not args.verbose:
+    sys.stdout = open(os.devnull, "w")
 
-        print(f"Attack I: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot4/i}")
+files = list(Path(work_dir).glob("*.json"))
 
-        
-        TPR_0 = safe_div(all_msg_succ3, all_msg_tot3)
-        TPR_1 = safe_div(all_inv_succ3, all_inv_tot3)
-        FPR = safe_div(all_dup_plain_detect, all_dup_plain_tot)
+for i, file_path in enumerate(tqdm(files), start=1):
+    print_json_keys(file_path, t=3)
+    print(f"current_avg_err_num={error_num_tot / i}")
+    print(f"===dup===")
+    print(f"dup_num_tot={dup_num_tot}")
+    print(f"All:    {all_msg_tot1}, {all_msg_same1}, {all_inv_tot1}, {all_inv_same1}")
+    print(f"Detect: {all_msg_tot3}, {all_msg_succ3}, {all_inv_tot3}, {all_inv_succ3}")
+    print(f"Plain All: {all_dup_plain_sum}, {all_dup_plain_same}")
+    print(f"Plain Detect:  {all_dup_plain_tot}, {all_dup_plain_detect}")
+    print(f"===key===")
+    print(f"All:    {all_msg_tot2}, {all_msg_same2}, {all_inv_tot2}, {all_inv_same2}")
+    print(f"Detect: {all_msg_tot4}, {all_msg_succ4}, {all_inv_tot4}, {all_inv_succ4}")
+    print(f"Plain All: {all_key_plain_sum}, {all_key_plain_same}")
+    print(f"Plain Detect:  {all_key_plain_tot}, {all_key_plain_detect}")
 
-        print(f"Attack II: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot3/i}")
+
+tot = len(files)
+TPR_0 = safe_div(all_msg_succ4, all_msg_tot4)
+TPR_1 = safe_div(all_inv_succ4, all_inv_tot4)
+FPR_0 = safe_div(all_key_plain_detect, all_key_plain_tot)
+
+
+TPR_0 = safe_div(all_msg_succ3, all_msg_tot3)
+TPR_1 = safe_div(all_inv_succ3, all_inv_tot3)
+FPR_0 = safe_div(all_dup_plain_detect, all_dup_plain_tot)
+with open(f"{work_dir}/result.csv", "w") as f:
+    f.write("Attack,TPR_0,TPR_1,FPR_0,Success_Rate\n")
+    f.write(f"Attack I,{TPR_0},{TPR_1},{FPR_0},{safe_div(all_msg_succ4, tot)}\n")
+    f.write(f"Attack II,{TPR_0},{TPR_1},{FPR_0},{safe_div(all_msg_succ3, tot)}\n")

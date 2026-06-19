@@ -31,7 +31,7 @@ from optim_utils import set_random_seed, transform_img, get_dataset
 
 def stable_diffusion_pipe(
         solver_order=1,
-        model_id='stabilityai/stable-diffusion-2-1-base',
+        model_id='.models/Manojb/stable-diffusion-2-1-base',
         cache_dir='',
 ):
     
@@ -54,7 +54,13 @@ def stable_diffusion_pipe(
         safety_checker=None,
     )
     pipe = pipe.to(device)
+    pipe.unet.eval()
+    pipe.vae.eval()
 
+    for p in pipe.unet.parameters():
+        p.requires_grad_(False)
+    for p in pipe.vae.parameters():
+        p.requires_grad_(False)
     return pipe
 
 
@@ -66,7 +72,7 @@ def generate(
         solver_order=1,
         image_length=512,
         datasets='Gustavosta/Stable-Diffusion-Prompts',
-        model_id='stabilityai/stable-diffusion-2-1-base',
+        model_id='.models/Manojb/stable-diffusion-2-1-base',
         gen_seed=0,
         pipe=None,
         init_latents=None,
@@ -127,7 +133,7 @@ def exact_inversion(
         test_num_inference_steps=50,
         inv_order=1,
         decoder_inv=True,
-        model_id='stabilityai/stable-diffusion-2-1-base',
+        model_id='.models/Manojb/stable-diffusion-2-1-base',
         pipe=None,
 ):
     
@@ -183,7 +189,7 @@ def exact_inversion_with_grad(
         test_num_inference_steps=50,
         inv_order=1,
         decoder_inv=True,
-        model_id='stabilityai/stable-diffusion-2-1-base',
+        model_id='.models/Manojb/stable-diffusion-2-1-base',
         pipe=None,
 ):
     

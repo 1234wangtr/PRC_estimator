@@ -131,7 +131,7 @@ def main2():
 
     plt.xticks(range(int(min(t_values)), int(max(t_values)) + 1), fontsize=20)
     plt.yticks(fontsize=20)
-    plt.savefig('gim/data/gim_watermark_secrity_estim.pdf', bbox_inches='tight')
+    plt.savefig('gim/data/security_estim.pdf', bbox_inches='tight')
     plt.show()
     import pandas as pd
     df = pd.DataFrame({
@@ -156,7 +156,7 @@ def main2():
     df['T_overlay'] = df['T_overlay'].round(2)
     df['T_prime_overlay'] = df['T_prime_overlay'].round(2)
     df['lambda'] = df['lambda'].round(0)
-    df.to_csv('gim/data/gim_watermark_secrity_estim.csv', index=False)
+    df.to_csv('gim/data/security_estim.csv', index=False)
 
 if __name__ == '__main__':
     main2()

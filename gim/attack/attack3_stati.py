@@ -2,8 +2,15 @@
 import re
 import pandas as pd
 res = []
-for i in range(100):
-    file = f"gim/data/for_attack3_prc_num_1_steps_50_fpr_1e-05_nowm_0/inv_lat_0.0941/{i}.txt"
+import sys
+if len(sys.argv) > 1:
+    work_dir = sys.argv[1]
+else:
+    print(f"Usage: python {sys.argv[0]} <work_dir>")
+    exit(1)
+from pathlib import Path
+for file in Path(work_dir).glob("*.txt"):
+    i = file.stem
     try:
         with open(file, "r") as f:
             lines = f.readlines()
@@ -11,10 +18,7 @@ for i in range(100):
         print(f"File not found: {file}")
         continue
     for line in lines:
-        '''
-        Step 1/100, Loss: 3.3996517658233643, Error: 0.9102,Actual Error: 0.9141, PSNR: 44.6145, Detection: True; Decoding: True; Detection_hard: True; Decoding_hard: True
-        '''
-        
+
         pattern = r"Step (\d+)/100, Loss: ([\d\.]+), Error: ([\d\.]+),Actual Error: ([\d\.]+), PSNR: ([\d\.]+), Detection: (True|False); Decoding: (True|False); Detection_hard: (True|False); Decoding_hard: (True|False)"
         match = re.match(pattern, line)
         if match:
@@ -87,6 +91,6 @@ df_false = df[df["detection"] == False]
 df_agg = df_false.groupby("image").agg({"step": "first", "error": "first", "actual_error": "first", "psnr": "first", "detection": "first", "decoding": "first", "detection_hard": "first", "decoding_hard": "first"}).reset_index()
 succ = df_agg["step"] != 999
 df_agg_success = df_agg[succ]
-print(succ.mean())
 print(df_agg_success[["step", "error", "actual_error", "psnr"]].describe())
+print(f"Success rate: {succ.mean():.2%}")
 

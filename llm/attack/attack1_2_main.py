@@ -165,37 +165,52 @@ def print_json_keys(file_path,t):
 
 def safe_div(numerator, denominator):
     return numerator / denominator if denominator != 0 else float('NaN')
+from pathlib import Path
+from tqdm import tqdm
+import sys
+import os
+import argparse
 
-if __name__ == "__main__":
-    num = 8
-    for i in range(1,num+1):
-        file_path = "llm/data/gen_result_Deepseek_t_3_temp_1.8/"+ str(i).zfill(4) +".json"
-        print_json_keys(file_path,t=3)
-        print(f"avg_err_num={error_num_tot / i}")
-        print(f"===dup===")
-        print(f"dup_num_tot={dup_num_tot}")
-        print(f"All:    {all_msg_tot1}, {all_msg_same1}, {all_inv_tot1}, {all_inv_same1}")
-        print(f"Detect: {all_msg_tot3}, {all_msg_succ3}, {all_inv_tot3}, {all_inv_succ3}")
-        print(f"Plain All: {all_dup_plain_sum}, {all_dup_plain_same}")
-        print(f"Plain Detect:  {all_dup_plain_tot}, {all_dup_plain_detect}")
-        print(f"===key===")
-        print(f"All:    {all_msg_tot2}, {all_msg_same2}, {all_inv_tot2}, {all_inv_same2}")
-        print(f"Detect: {all_msg_tot4}, {all_msg_succ4}, {all_inv_tot4}, {all_inv_succ4}")
-        print(f"Plain All: {all_key_plain_sum}, {all_key_plain_same}")
-        print(f"Plain Detect:  {all_key_plain_tot}, {all_key_plain_detect}")
+parser = argparse.ArgumentParser()
+parser.add_argument('work_dir', type=str, help='Directory containing JSON files')
+parser.add_argument('--verbose', action='store_true', help='Print detailed output')
+args = parser.parse_args()
+work_dir = args.work_dir
+if not args.verbose:
+    sys.stdout = open(os.devnull, 'w')
 
-        print("===Summary===")
+files = list(Path(work_dir).glob("*.json"))
 
-        
-        TPR_0 = safe_div(all_msg_succ4, all_msg_tot4)
-        TPR_1 = safe_div(all_inv_succ4, all_inv_tot4)
-        FPR = safe_div(all_key_plain_detect, all_key_plain_tot)
+for i, file_path in enumerate(tqdm(files), start=1):
+    print_json_keys(file_path,t=3)
+    print(f"current_avg_err_num={error_num_tot / i}")
+    print(f"===dup===")
+    print(f"dup_num_tot={dup_num_tot}")
+    print(f"All:    {all_msg_tot1}, {all_msg_same1}, {all_inv_tot1}, {all_inv_same1}")
+    print(f"Detect: {all_msg_tot3}, {all_msg_succ3}, {all_inv_tot3}, {all_inv_succ3}")
+    print(f"Plain All: {all_dup_plain_sum}, {all_dup_plain_same}")
+    print(f"Plain Detect:  {all_dup_plain_tot}, {all_dup_plain_detect}")
+    print(f"===key===")
+    print(f"All:    {all_msg_tot2}, {all_msg_same2}, {all_inv_tot2}, {all_inv_same2}")
+    print(f"Detect: {all_msg_tot4}, {all_msg_succ4}, {all_inv_tot4}, {all_inv_succ4}")
+    print(f"Plain All: {all_key_plain_sum}, {all_key_plain_same}")
+    print(f"Plain Detect:  {all_key_plain_tot}, {all_key_plain_detect}")
 
-        print(f"Attack I: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot4/i}")
 
-        
-        TPR_0 = safe_div(all_msg_succ3, all_msg_tot3)
-        TPR_1 = safe_div(all_inv_succ3, all_inv_tot3)
-        FPR = safe_div(all_dup_plain_detect, all_dup_plain_tot)
 
-        print(f"Attack II: TPR_0:{TPR_0} TPR_1:{TPR_1} FPR:{FPR} Success Rate:{all_msg_tot3/i}")
+tot = len(files)
+TPR_0 = safe_div(all_msg_succ4, all_msg_tot4)
+TPR_1 = safe_div(all_inv_succ4, all_inv_tot4)
+FPR_0 = safe_div(all_key_plain_detect, all_key_plain_tot)
+
+
+
+TPR_0 = safe_div(all_msg_succ3, all_msg_tot3)
+TPR_1 = safe_div(all_inv_succ3, all_inv_tot3)
+FPR_0 = safe_div(all_dup_plain_detect, all_dup_plain_tot)
+with open(f"{work_dir}/result.csv", 'w') as f:
+    f.write("Attack,TPR_0,TPR_1,FPR_0,Success_Rate\n")
+    f.write(f"Attack I,{TPR_0},{TPR_1},{FPR_0},{safe_div(all_msg_succ4, tot)}\n")
+    f.write(f"Attack II,{TPR_0},{TPR_1},{FPR_0},{safe_div(all_msg_succ3, tot)}\n")
+
+
