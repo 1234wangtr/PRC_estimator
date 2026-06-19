@@ -71,7 +71,7 @@ def generate(
         num_inference_steps=50,
         solver_order=1,
         image_length=512,
-        datasets='Gustavosta/Stable-Diffusion-Prompts',
+        datasets='.models/Gustavosta/Stable-Diffusion-Prompts',
         model_id='.models/Manojb/stable-diffusion-2-1-base',
         gen_seed=0,
         pipe=None,

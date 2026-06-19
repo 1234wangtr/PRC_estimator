@@ -23,7 +23,7 @@ parser.add_argument('--gen_model_id', type=str,
 parser.add_argument('--inv_model_ids', type=str,
                     default='SD21')
 parser.add_argument('--dataset_id', type=str,
-                    default='Gustavosta/Stable-Diffusion-Prompts')  
+                    default='.models/Gustavosta/Stable-Diffusion-Prompts')  
 parser.add_argument('--inf_steps', type=int, default=50)
 parser.add_argument('--nowm', type=int, default=0)
 parser.add_argument('--fpr', type=float, default=0.00001)

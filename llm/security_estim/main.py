@@ -153,7 +153,7 @@ def main():
     df['T_dis'] = df['T_dis'].round(2)
     df['T_overlay'] = df['T_overlay'].round(2)
     df['lambda'] = df['lambda'].round(0)
-    df.to_csv('llm/data/llm_watermark_security_estim.csv', index=False)
+    df.to_csv('llm/data/security_estim.csv', index=False)
 
 if __name__ == '__main__':
     main()

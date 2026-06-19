@@ -19,7 +19,7 @@ parser.add_argument('--end', type=int, default=10)
 parser.add_argument('--method', type=str, default='prc') 
 parser.add_argument('--model_id', type=str,
                     default='SD21')
-parser.add_argument('--dataset_id', type=str, default='Gustavosta/Stable-Diffusion-Prompts') 
+parser.add_argument('--dataset_id', type=str, default='.models/Gustavosta/Stable-Diffusion-Prompts') 
 parser.add_argument('--inf_steps', type=int, default=50)
 parser.add_argument('--fpr', type=float, default=0.00001)
 parser.add_argument('--prc_t', type=int, default=3)
