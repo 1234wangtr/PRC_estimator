@@ -159,3 +159,13 @@ This will output the success rate of watermark removal under different image qua
 
 ## Acknowledgements
 The code for generating PRC watermarked images is adapted from https://github.com/XuandongZhao/PRC-Watermark.
+
+## 
+```bibtex
+@inproceedings{WWCRLW26,
+    author = {Tianrui Wang and Anyu Wang and Tianshuo Cong and Delong Ran and Jinyuan Liu and Xiaoyun Wang},
+    title = {Cryptanalysis of LDPC-Based Pseudorandom Error-Correcting Codes},
+    booktitle = {USENIX Security} ,
+    year = {2026}
+}
+```
